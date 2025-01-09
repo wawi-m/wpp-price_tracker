@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Price History{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="card-title">Price History</h1>
+                <div class="product-select mb-4">
+                    <select class="form-select" id="productSelect">
+                        <option value="">Select a product...</option>
+                    </select>
+                </div>
+
+                <div id="priceHistoryChart">
+                    <!-- Price history chart will be rendered here -->
+                </div>
+
+                <div class="price-stats mt-4">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Current Price</h5>
+                                    <p class="card-text" id="currentPrice">-</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Lowest Price</h5>
+                                    <p class="card-text" id="lowestPrice">-</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Highest Price</h5>
+                                    <p class="card-text" id="highestPrice">-</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Average Price</h5>
+                                    <p class="card-text" id="averagePrice">-</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadProductsForHistory();
+        document.getElementById('productSelect').addEventListener('change', updatePriceHistory);
+    });
+</script>
+{% endblock %}

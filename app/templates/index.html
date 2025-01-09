@@ -1,0 +1,565 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block head %}
+<style>
+    .product-card {
+        transition: transform 0.3s, box-shadow 0.3s;
+        height: 100%;
+    }
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .price {
+        font-size: 1.4em;
+        color: #28a745;
+        font-weight: bold;
+    }
+    .price-change {
+        font-size: 0.9em;
+        margin-left: 8px;
+    }
+    .price-up { color: #dc3545; }
+    .price-down { color: #28a745; }
+    #priceChart, #compareChart {
+        height: 400px;
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .stats-card {
+        background: linear-gradient(135deg, #6B73FF 0%, #000DFF 100%);
+        color: white;
+        border: none;
+    }
+    .platform-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.85em;
+        font-weight: 500;
+    }
+    .platform-jumia {
+        background-color: #f90;
+        color: white;
+    }
+    .platform-kilimall {
+        background-color: #e41e31;
+        color: white;
+    }
+    .search-section {
+        background: linear-gradient(135deg, #f6f9fc 0%, #f1f4f8 100%);
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 8px;
+    }
+    .platforms-banner {
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        color: white;
+    }
+    .platform-card {
+        text-align: center;
+        padding: 1.5rem;
+        border-radius: 10px;
+        transition: transform 0.3s, box-shadow 0.3s;
+        margin-bottom: 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .platform-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+    .platform-card.jumia {
+        background: linear-gradient(135deg, #ff9900 0%, #ff7700 100%);
+    }
+    .platform-card.kilimall {
+        background: linear-gradient(135deg, #e41e31 0%, #c41829 100%);
+    }
+    .platform-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+        pointer-events: none;
+    }
+    .platform-logo {
+        height: 40px;
+        margin-bottom: 1rem;
+        filter: brightness(0) invert(1);
+    }
+    .platform-stats {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .platform-prices {
+        font-size: 0.85rem;
+        opacity: 0.8;
+        margin-top: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="platforms-banner">
+    <div class="container">
+        <h2 class="text-center mb-4">
+            <i class="fas fa-chart-line me-2"></i>
+            Tracking Prices Across Leading E-commerce Platforms
+        </h2>
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="platform-card jumia">
+                    <img src="https://www.jumia.co.ke/assets/logos/jumia-white.png" alt="Jumia" class="platform-logo">
+                    <div class="platform-stats">
+                        <div class="stat-number" id="jumiaProducts">-</div>
+                        <div>Products Tracked</div>
+                        <div class="platform-prices" id="jumiaPrices">- prices tracked</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="platform-card kilimall">
+                    <img src="https://www.kilimall.co.ke/new_static/images/logo-white.png" alt="Kilimall" class="platform-logo">
+                    <div class="platform-stats">
+                        <div class="stat-number" id="kilimallProducts">-</div>
+                        <div>Products Tracked</div>
+                        <div class="platform-prices" id="kilimallPrices">- prices tracked</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card stats-card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-box me-2"></i>
+                    Total Products
+                </h5>
+                <h2 id="totalProducts">-</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stats-card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-arrow-down me-2"></i>
+                    Price Drops Today
+                </h5>
+                <h2 id="priceDrops">-</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stats-card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-arrow-up me-2"></i>
+                    Price Increases Today
+                </h5>
+                <h2 id="priceIncreases">-</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div id="productsList" class="row g-4"></div>
+        <div class="text-center mt-4">
+            <button id="loadMore" class="btn btn-primary btn-lg">Load More Products</button>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card sticky-top" style="top: 20px">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Price History</h5>
+                <div id="priceChart"></div>
+                <div id="productDetails" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section id="compare" class="mt-5 pt-5">
+    <h2 class="mb-4">Compare Products</h2>
+    <div class="row">
+        <div class="col-md-6">
+            <select id="product1" class="form-select mb-3">
+                <option value="">Select first product...</option>
+            </select>
+            <div id="product1Details"></div>
+        </div>
+        <div class="col-md-6">
+            <select id="product2" class="form-select mb-3">
+                <option value="">Select second product...</option>
+            </select>
+            <div id="product2Details"></div>
+        </div>
+    </div>
+    <div id="compareChart" class="mt-4"></div>
+</section>
+
+<section class="search-section">
+    <div class="container">
+        <h1 class="text-center mb-4">Track Prices Across E-commerce Platforms</h1>
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <form id="searchForm">
+                            <div class="row g-3">
+                                <div class="col-md-5">
+                                    <div class="input-group">
+                                        <input type="text" id="searchInput" class="form-control form-control-lg" 
+                                            placeholder="Search for products...">
+                                        <button type="submit" class="btn btn-primary btn-lg">
+                                            <i class="fas fa-search"></i> Search
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <select id="categoryFilter" class="form-select form-select-lg">
+                                        <option value="">All Categories</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <select id="platformFilter" class="form-select form-select-lg">
+                                        <option value="">All Platforms</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" class="btn btn-outline-secondary btn-lg w-100" 
+                                        onclick="resetFilters()">
+                                        <i class="fas fa-redo"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentPage = 1;
+let selectedProductId = null;
+
+function formatPrice(price) {
+    return new Intl.NumberFormat('en-KE', {
+        style: 'currency',
+        currency: 'KES'
+    }).format(price);
+}
+
+function getPlatformBadgeClass(platform) {
+    return platform.toLowerCase() === 'jumia' ? 'platform-jumia' : 'platform-kilimall';
+}
+
+async function loadStats() {
+    const response = await fetch('/api/v1/stats');
+    const stats = await response.json();
+    
+    // Update general stats
+    document.getElementById('totalProducts').textContent = stats.total_products;
+    document.getElementById('priceDrops').textContent = stats.price_decreases || 0;
+    document.getElementById('priceIncreases').textContent = stats.price_increases || 0;
+    
+    // Update platform-specific stats
+    if (stats.platform_stats) {
+        document.getElementById('jumiaProducts').textContent = 
+            stats.platform_stats.jumia?.total_products || 0;
+        document.getElementById('kilimallProducts').textContent = 
+            stats.platform_stats.kilimall?.total_products || 0;
+        document.getElementById('jumiaPrices').textContent = 
+            `${stats.platform_stats.jumia?.total_prices || 0} prices tracked`;
+        document.getElementById('kilimallPrices').textContent = 
+            `${stats.platform_stats.kilimall?.total_prices || 0} prices tracked`;
+    }
+}
+
+async function loadFilters() {
+    const [categories, platforms] = await Promise.all([
+        fetch('/api/v1/categories').then(r => r.json()),
+        fetch('/api/v1/platforms').then(r => r.json())
+    ]);
+
+    const categorySelect = document.getElementById('categoryFilter');
+    categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category.id;
+        option.textContent = category.name;
+        categorySelect.appendChild(option);
+    });
+
+    const platformSelect = document.getElementById('platformFilter');
+    platforms.forEach(platform => {
+        const option = document.createElement('option');
+        option.value = platform.id;
+        option.textContent = platform.name;
+        platformSelect.appendChild(option);
+    });
+
+    // Also populate comparison selects
+    const productSelects = ['product1', 'product2'];
+    const products = await fetch('/api/v1/products').then(r => r.json());
+    
+    productSelects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        products.items.forEach(product => {
+            const option = document.createElement('option');
+            option.value = product.id;
+            option.textContent = `${product.name} (${product.platform})`;
+            select.appendChild(option);
+        });
+    });
+}
+
+async function loadProducts(page = 1, append = false) {
+    const searchQuery = document.getElementById('searchInput').value;
+    const categoryId = document.getElementById('categoryFilter').value;
+    const platformId = document.getElementById('platformFilter').value;
+
+    const params = new URLSearchParams({
+        page,
+        search: searchQuery,
+        category_id: categoryId,
+        platform_id: platformId
+    });
+
+    const response = await fetch(`/api/v1/products?${params}`);
+    const data = await response.json();
+
+    const container = document.getElementById('productsList');
+    if (!append) {
+        container.innerHTML = '';
+        currentPage = 1;
+    }
+
+    data.items.forEach(product => {
+        const col = document.createElement('div');
+        col.className = 'col-md-6 mb-4';
+        col.innerHTML = `
+            <div class="card product-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">${product.name}</h5>
+                        <span class="platform-badge ${getPlatformBadgeClass(product.platform)}">
+                            ${product.platform}
+                        </span>
+                    </div>
+                    <p class="price mb-2">
+                        ${formatPrice(product.current_price)}
+                        <span class="price-change price-down">
+                            <i class="fas fa-arrow-down"></i> 5%
+                        </span>
+                    </p>
+                    <div class="d-flex justify-content-between mt-3">
+                        <button class="btn btn-primary btn-sm view-history" data-id="${product.id}">
+                            <i class="fas fa-chart-line"></i> Price History
+                        </button>
+                        <a href="${product.url}" target="_blank" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-external-link-alt"></i> View on Site
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.appendChild(col);
+    });
+
+    document.getElementById('loadMore').style.display = 
+        data.has_next ? 'block' : 'none';
+}
+
+async function loadPriceHistory(productId) {
+    const response = await fetch(`/api/v1/products/${productId}`);
+    const product = await response.json();
+
+    document.getElementById('productDetails').innerHTML = `
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <h6 class="mb-0">${product.name}</h6>
+            <span class="platform-badge ${getPlatformBadgeClass(product.platform)}">
+                ${product.platform}
+            </span>
+        </div>
+        <p class="price mb-2">${formatPrice(product.prices[product.prices.length - 1].price)}</p>
+        <a href="${product.url}" target="_blank" class="btn btn-primary btn-sm w-100">
+            <i class="fas fa-external-link-alt"></i> View on Site
+        </a>
+    `;
+
+    const prices = product.prices;
+    const trace = {
+        x: prices.map(p => new Date(p.timestamp)),
+        y: prices.map(p => p.price),
+        type: 'scatter',
+        mode: 'lines+markers',
+        line: {
+            color: '#000DFF',
+            width: 2
+        },
+        marker: {
+            color: '#6B73FF',
+            size: 6
+        }
+    };
+
+    const layout = {
+        title: 'Price History',
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        xaxis: {
+            title: 'Date',
+            gridcolor: '#eee'
+        },
+        yaxis: {
+            title: 'Price (KES)',
+            gridcolor: '#eee'
+        },
+        margin: { t: 30, l: 60, r: 30, b: 40 }
+    };
+
+    Plotly.newPlot('priceChart', [trace], layout);
+}
+
+async function compareProducts() {
+    const product1Id = document.getElementById('product1').value;
+    const product2Id = document.getElementById('product2').value;
+
+    if (!product1Id || !product2Id) return;
+
+    const [product1, product2] = await Promise.all([
+        fetch(`/api/v1/products/${product1Id}`).then(r => r.json()),
+        fetch(`/api/v1/products/${product2Id}`).then(r => r.json())
+    ]);
+
+    const trace1 = {
+        x: product1.prices.map(p => new Date(p.timestamp)),
+        y: product1.prices.map(p => p.price),
+        name: product1.name,
+        type: 'scatter',
+        mode: 'lines+markers'
+    };
+
+    const trace2 = {
+        x: product2.prices.map(p => new Date(p.timestamp)),
+        y: product2.prices.map(p => p.price),
+        name: product2.name,
+        type: 'scatter',
+        mode: 'lines+markers'
+    };
+
+    const layout = {
+        title: 'Price Comparison',
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        xaxis: {
+            title: 'Date',
+            gridcolor: '#eee'
+        },
+        yaxis: {
+            title: 'Price (KES)',
+            gridcolor: '#eee'
+        }
+    };
+
+    Plotly.newPlot('compareChart', [trace1, trace2], layout);
+
+    ['product1Details', 'product2Details'].forEach((detailId, index) => {
+        const product = index === 0 ? product1 : product2;
+        document.getElementById(detailId).innerHTML = `
+            <div class="card mt-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="mb-0">${product.name}</h6>
+                        <span class="platform-badge ${getPlatformBadgeClass(product.platform)}">
+                            ${product.platform}
+                        </span>
+                    </div>
+                    <p class="price mb-2">${formatPrice(product.prices[product.prices.length - 1].price)}</p>
+                    <a href="${product.url}" target="_blank" class="btn btn-primary btn-sm w-100">
+                        View on Site
+                    </a>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
+
+function resetFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('categoryFilter').value = '';
+    document.getElementById('platformFilter').value = '';
+    loadProducts();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadStats();
+    loadFilters();
+    loadProducts();
+
+    // Search form submission
+    document.getElementById('searchForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        loadProducts();
+    });
+
+    // Real-time filter updates
+    document.getElementById('categoryFilter').addEventListener('change', loadProducts);
+    document.getElementById('platformFilter').addEventListener('change', loadProducts);
+    
+    // Load more products
+    document.getElementById('loadMore').addEventListener('click', () => {
+        currentPage++;
+        loadProducts(currentPage, true);
+    });
+
+    // Price history view
+    document.getElementById('productsList').addEventListener('click', (e) => {
+        if (e.target.classList.contains('view-history') || 
+            e.target.parentElement.classList.contains('view-history')) {
+            const button = e.target.classList.contains('view-history') ? 
+                e.target : e.target.parentElement;
+            const productId = button.dataset.id;
+            selectedProductId = productId;
+            loadPriceHistory(productId);
+        }
+    });
+
+    // Product comparison
+    document.getElementById('product1').addEventListener('change', compareProducts);
+    document.getElementById('product2').addEventListener('change', compareProducts);
+});
+</script>
+{% endblock %}

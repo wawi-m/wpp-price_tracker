@@ -1,0 +1,17 @@
+Flask==2.3.3
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.0.5
+psycopg2-binary==2.9.9
+python-dotenv==1.0.0
+requests==2.31.0
+beautifulsoup4==4.12.2
+selenium==4.15.2
+undetected-chromedriver==3.5.4
+pandas==2.1.1
+plotly==5.17.0
+pytest==7.4.2
+python-dateutil==2.8.2
+SQLAlchemy==2.0.21
+Werkzeug==2.3.7
+gunicorn==21.2.0
+flask-cors==4.0.0

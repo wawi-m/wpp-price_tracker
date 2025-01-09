@@ -1,0 +1,105 @@
+/* General Styles */
+body {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* Navbar */
+.navbar-brand i {
+    margin-right: 8px;
+}
+
+/* Cards */
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: none;
+    margin-bottom: 20px;
+}
+
+.card-title {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Product Cards */
+.product-card {
+    transition: transform 0.2s;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+}
+
+.product-card img {
+    height: 200px;
+    object-fit: contain;
+    padding: 10px;
+}
+
+.product-card .price {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #28a745;
+}
+
+.product-card .platform {
+    color: #6c757d;
+    font-size: 0.9em;
+}
+
+/* Comparison Page */
+.product-select {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.product-details {
+    margin-top: 20px;
+}
+
+/* Price History Page */
+.price-stats .card {
+    text-align: center;
+}
+
+.price-stats .card-text {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #007bff;
+}
+
+/* Charts */
+#priceHistoryChart,
+#comparisonChart {
+    height: 400px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+/* Search Container */
+.search-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Load More Button */
+#loadMore {
+    margin: 20px 0;
+}
+
+/* Footer */
+.footer {
+    margin-top: auto;
+    background-color: #f8f9fa;
+    padding: 20px 0;
+}
