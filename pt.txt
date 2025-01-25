@@ -1,0 +1,61 @@
+generate scripts and files to develop a webstack app below
+A lightweight backend service for real-time querying of historical pricing data from popular e-commerce platforms in Kenya (e.g., Masoko, Jumia, Kilimall). A RESTful API providing streamlined interface for accurate, up-to-date pricing insights. PostgreSQL Database Integration
+RESTful Endpoints
+Endpoint Testing via UI interface
+Deployment with Heroku/alt
+
+Static sites are not permitted; projects must demonstrate dynamic functionality.
+
+USe python stack for backend development, flask framework for web application development, 
+create scraper files to get products; mobilesphones and Televisions from jumia and kilimall from urls
+https://www.jumia.co.ke/mobile-phones/#catalog-listing
+https://www.jumia.co.ke/televisions/
+
+https://www.kilimall.co.ke/category/television?id=2070&form=category
+https://www.kilimall.co.ke/category/mobile-phones?id=873&form=category
+
+connect to price_trackerdatabase in postgresql-docker container through pgadmin, using sqlalchemy, use flask-sqlalchemy for ORM, use flask-migrate for migrations,
+create user interface for price tracking application, with the following endpoints:
+"products": "/api/v1/products",
+            "product_detail": "/api/v1/products/<id>",
+            "search": "/api/v1/products/search",
+            "price_history": "/api/v1/products/<id>/prices",
+            "price_visualization": "/api/v1/products/<id>/visualization",
+            "price_visualization_data": "/api/v1/products/<id>/visualization/data",
+            "categories": "/api/v1/categories",
+            "platforms": "/api/v1/platforms",
+            "stats": "/api/v1/stats"
+
+
+we need a frontend user interface for comparing similar products from different websites, kilimall and jumia, and products price history. 
+
+create and initialize venv
+create requirements.txt
+install dependencies in requirements.txt
+create a gitignore file
+create a .env file
+
+
+
+create a dockerfile for postgresql
+create a dockerfile for flask application
+create a docker-compose.yml file
+create a docker-compose.override.yml file
+create a docker-compose.prod.yml file
+create a docker-compose.dev.yml file
+create a docker-compose.test.yml file
+create a docker-compose.prod.override.yml file
+create a docker-compose.dev.override.yml file
+create a docker-compose.test.override.yml file
+create a docker-compose.prod.test.yml file
+create a docker-compose.dev.test.yml file
+create a docker-compose.prod.dev.yml file
+create a docker-compose.dev.prod.yml file
+create a docker-compose.prod.dev.test.yml file
+create a docker-compose.dev.prod.test.yml file
+create a docker-compose.prod.dev.prod.yml file
+create a docker-compose.dev.prod.prod.yml file
+create a docker-compose.prod.dev.prod.test.yml file
+create a docker-compose.dev.prod.prod.test.yml file
+create a docker-compose.prod.dev.prod.prod.yml file
+create a docker-compose.dev.prod.prod.prod.yml file

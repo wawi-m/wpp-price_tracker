@@ -1,0 +1,10 @@
+conda create --name e-analytics python=3.12
+conda init bash
+conda activate e-analytics
+pip install -r requirements.txt
+
+create Dockerfile
+create docker-compose.yaml
+`docker-compose up --build`
+
+http://localhost:5000
