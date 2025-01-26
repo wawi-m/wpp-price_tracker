@@ -48,4 +48,4 @@ class Product(db.Model):
             
         # Update current price
         self.current_price = new_price
-        self.last_price_update = datetime.utcnow()
+        self.last_price_update = datetime()

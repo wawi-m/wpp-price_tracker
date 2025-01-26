@@ -15,10 +15,7 @@ migrate = Migrate()
 class Config:
     """Configuration class to handle environment variables."""
     
-    # Fetching the SECRET_KEY, defaulting to 'dev' if not found
-    SECRET_KEY = os.getenv('SECRET_KEY', 'dev')
-
-    # Fetch DATABASE_URL from environment variable
+     # Fetch DATABASE_URL from environment variable
     DATABASE_URL = os.getenv('DATABASE_URL')
 
     if not DATABASE_URL:
@@ -40,7 +37,7 @@ def create_app():
     
     # Configure the Flask application
     app.config.from_object(Config)
-    
+
     # Initialize CORS
     CORS(app)
     
@@ -75,3 +72,7 @@ def create_app():
         }
 
     return app
+
+if __name__ == '__main__':
+    app = create_app()
+    app.run(debug=True)

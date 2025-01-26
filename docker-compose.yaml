@@ -1,29 +1,4 @@
 services:
-  backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: gunicorn wsgi:app
-    environment:
-      - FLASK_APP=app
-      - FLASK_ENV=development    
-      - DATABASE_URL=${DATABASE_URL}
-      - SECRET_KEY=${SECRET_KEY}
-    ports:
-      - "5000:5000"
-    volumes:
-      - ./app:/app
-      - ./static:/app/static
-      - ./media:/app/media
-    depends_on:
-      - db
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
-      interval: 30s
-      retries: 3
-      start_period: 10s
-      timeout: 10s
-
   db:
     image: postgres:latest
     environment:
