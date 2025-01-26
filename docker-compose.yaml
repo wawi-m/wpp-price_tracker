@@ -3,8 +3,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    command: gunicorn wsgi:app
     environment:
-      - DATABASE_URL=postgresql://postgres:password@db:5432/e-track
+      - FLASK_APP=app
+      - FLASK_ENV=development    
+      - DATABASE_URL=${DATABASE_URL}
+      - SECRET_KEY=${SECRET_KEY}
     ports:
       - "5000:5000"
     volumes:
@@ -23,9 +27,9 @@ services:
   db:
     image: postgres:latest
     environment:
-      POSTGRES_DB: e-track
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:

@@ -12,17 +12,35 @@ load_dotenv()
 db = SQLAlchemy()
 migrate = Migrate()
 
+class Config:
+    """Configuration class to handle environment variables."""
+    
+    # Fetching the SECRET_KEY, defaulting to 'dev' if not found
+    SECRET_KEY = os.getenv('SECRET_KEY', 'dev')
+
+    # Fetch DATABASE_URL from environment variable
+    DATABASE_URL = os.getenv('DATABASE_URL')
+
+    if not DATABASE_URL:
+        raise ValueError("DATABASE_URL environment variable is required.")
+
+   
+    # Build the SQLAlchemy URI dynamically from environment variables
+    SQLALCHEMY_DATABASE_URI = DATABASE_URL
+    
+    # Disable track modifications to save memory
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    # CORS settings (you can customize this for specific origins in production)
+    CORS_HEADERS = 'Content-Type'
+
+
 def create_app():
     app = Flask(__name__)
     
     # Configure the Flask application
-    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev')
+    app.config.from_object(Config)
     
-    # Build database URL from environment variables
-    db_url = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_HOST')}/{os.getenv('POSTGRES_DB')}"
-    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
     # Initialize CORS
     CORS(app)
     

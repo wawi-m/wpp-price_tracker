@@ -19,4 +19,4 @@ USER appuser
 
 # Define the command to run the application
 # CMD ["python", "run.py"]
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "run:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "wsgi:app"]

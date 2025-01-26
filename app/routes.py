@@ -1,7 +1,8 @@
-from flask import render_template, jsonify, request
+from flask import render_template, jsonify, request, abort
 from app import app, db
 from app.models.models import Product, Platform, Category, Price
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 from datetime import datetime, timedelta
 
 # Frontend Routes
@@ -56,7 +57,13 @@ def get_products():
 
 @app.route('/api/v1/products/<int:id>')
 def get_product(id):
-    product = Product.query.get_or_404(id)
+    # product = Product.query.get_or_404(id)
+    # Optimized query with joinedload to prevent N+1 problem
+    product = Product.query.options(joinedload(Product.platform), joinedload(Product.prices)).get(id)
+    
+    if not product:
+        abort(404, description="Product not found")
+
     return jsonify({
         'id': product.id,
         'name': product.name,
