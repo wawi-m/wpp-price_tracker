@@ -55,20 +55,7 @@ class JumiaPhoneScraper(BaseScraper):
                 if product:
                     products.append(product)
             
-            for product_data in products:
-                product = Product(
-                    name=product_data['name'],
-                    price=product_data['price'],
-                    url=product_data['url'],
-                    platform=product_data['platform'],
-                    image_url=product_data['image_url']
-                )
-                db.session.add(product)  # Add product to the session
-
-            db.session.commit()  # Commit the session to save all products
-
             return products
         except Exception as e:
             self.logger.error(f'Error scraping Jumia Phones: {str(e)}')
             return []
-
