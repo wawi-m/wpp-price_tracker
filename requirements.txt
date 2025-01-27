@@ -7,7 +7,7 @@ requests==2.31.0
 beautifulsoup4==4.12.2
 selenium==4.15.2
 undetected-chromedriver==3.5.4
-pandas==2.1.1
+pandas==1.5.3
 plotly==5.17.0
 pytest==7.4.2
 python-dateutil==2.8.2
@@ -15,5 +15,4 @@ sqlalchemy==2.0.21
 werkzeug==2.3.7
 gunicorn==21.2.0
 flask-cors==4.0.0
-numpy==1.26.0
-pandas==2.1.1
+numpy==1.24.3
