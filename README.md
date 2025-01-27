@@ -29,7 +29,7 @@ docker-compose up -d
 # The database will be available at:
 # - Host: localhost
 # - Port: 5432
-# - Database: e-track
+# - Database: price_tracker
 # - Username: postgres
 # - Password: password
 ```
