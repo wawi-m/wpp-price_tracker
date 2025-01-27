@@ -1,115 +1,94 @@
+# app/scrapers/run_scrapers.py
 from app import create_app, db
 from app.models.models import Platform, Category, Product
 from app.scrapers.jumia_phones import JumiaPhoneScraper
 from app.scrapers.jumia_tvs import JumiaTVScraper
-from app.scrapers.kilimall_phones import KilimallScraper
-from datetime import datetime
+from app.scrapers.kilimall_phones import KilimallPhoneScraper
+from app.scrapers.kilimall_tvs import KilimallTVScraper
 import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = create_app()  # Create the Flask app
-
-
-def init_db():
-    """Initialize the database with platforms and categories"""
-    with app.app_context():  # Use application context
-        # Create platforms
-        platforms = [
-            {'name': 'Jumia', 'url': 'https://www.jumia.co.ke'},
-            {'name': 'Kilimall', 'url': 'https://www.kilimall.co.ke'}
-        ]
-        
-        for p in platforms:
-            if not Platform.query.filter_by(name=p['name']).first():
-                platform = Platform(name=p['name'], url=p['url'])
-                db.session.add(platform)
-                logger.info(f"Created platform: {p['name']}")
-        
-        # Create categories
-        categories = ['Mobile Phones', 'Televisions']
-        for c in categories:
-            if not Category.query.filter_by(name=c).first():
-                category = Category(name=c)
-                db.session.add(category)
-                logger.info(f"Created category: {c}")
-        
-        db.session.commit()
-
 def save_products(products, category_name):
     """Save scraped products to database"""
-    with app.app_context():  # Use application context
+    app = create_app()
+    with app.app_context():
         try:
             category = Category.query.filter_by(name=category_name).first()
             if not category:
                 logger.error(f"Category not found: {category_name}")
                 return
             
+            platform_cache = {}
             products_updated = 0
             products_created = 0
             
             for product_data in products:
-                if not product_data.get('price'):
-                    logger.warning(f"Skipping product with no price: {product_data.get('name')}")
+                try:
+                    # Get platform
+                    platform_name = product_data['platform']
+                    if platform_name not in platform_cache:
+                        platform = Platform.query.filter_by(name=platform_name).first()
+                        if not platform:
+                            logger.error(f"Platform not found: {platform_name}")
+                            continue
+                        platform_cache[platform_name] = platform
+                    platform = platform_cache[platform_name]
+                    
+                    # Check if product exists
+                    product = Product.query.filter_by(url=product_data['url']).first()
+                    
+                    if product:
+                        # Update existing product
+                        if product.current_price != product_data['price']:
+                            product.update_price(product_data['price'])
+                        product.name = product_data['name']
+                        product.image_url = product_data.get('image_url')
+                        products_updated += 1
+                    else:
+                        # Create new product
+                        product = Product(
+                            name=product_data['name'],
+                            url=product_data['url'],
+                            image_url=product_data.get('image_url'),
+                            current_price=product_data['price'],
+                            platform=platform,
+                            category=category
+                        )
+                        db.session.add(product)
+                        products_created += 1
+                    
+                except Exception as e:
+                    logger.error(f"Error processing product {product_data.get('name')}: {str(e)}")
                     continue
-                
-                platform = Platform.query.filter_by(name=product_data['platform']).first()
-                if not platform:
-                    logger.error(f"Platform not found: {product_data['platform']}")
-                    continue
-                
-                # Check if product exists
-                product = Product.query.filter_by(url=product_data['url']).first()
-                
-                if not product:
-                    # Create new product
-                    product = Product(
-                        name=product_data['name'],
-                        url=product_data['url'],
-                        image_url=product_data['image_url'],
-                        platform_id=platform.id,
-                        category_id=category.id,
-                        current_price=product_data['price'],
-                        currency='KES'
-                    )
-                    db.session.add(product)
-                    products_created += 1
-                    logger.info(f"Created new product: {product.name}")
-                else:
-                    # Update existing product
-                    product.name = product_data['name']
-                    product.image_url = product_data['image_url']
-                    product.update_price(product_data['price'])
-                    products_updated += 1
-                    logger.info(f"Updated product: {product.name}")
             
             db.session.commit()
-            logger.info(f"Category {category_name}: Created {products_created}, Updated {products_updated} products")
-        
+            logger.info(f"Category {category_name}: Created {products_created} products, Updated {products_updated} products")
+            
         except Exception as e:
-            db.session.rollback()
             logger.error(f"Error saving products: {str(e)}")
-            raise
+            db.session.rollback()
 
-# Run all scrapers and save data
+def run_all_scrapers():
+    """Run all scrapers and save data"""
+    # Initialize scrapers
+    scrapers = [
+        (JumiaPhoneScraper(), "Mobile Phones"),
+        (JumiaTVScraper(), "Televisions"),
+        (KilimallPhoneScraper(), "Mobile Phones"),
+        (KilimallTVScraper(), "Televisions")
+    ]
+    
+    # Run each scraper
+    for scraper, category in scrapers:
+        try:
+            logger.info(f"Running {scraper.__class__.__name__}")
+            products = scraper.scrape_products()
+            save_products(products, category)
+        except Exception as e:
+            logger.error(f"Error running {scraper.__class__.__name__}: {str(e)}")
+
 if __name__ == '__main__':
-    with app.app_context():  # Use application context
-        init_db()
-        
-        # Initialize scrapers
-        scrapers = {
-            'Mobile Phones': [JumiaPhoneScraper()],
-            'Televisions': [JumiaTVScraper()]
-        }
-        
-        # Run scrapers for each category
-        for category, scraper_list in scrapers.items():
-            logger.info(f"Scraping {category}...")
-            for scraper in scraper_list:
-                logger.info(f"Using {scraper.__class__.__name__}...")
-                products = scraper.scrape_products()  # Use scrape_products for Jumia scrapers
-                save_products(products, category)
-                
-        logger.info("Scraping completed successfully")
+    run_all_scrapers()

@@ -15,12 +15,11 @@ migrate = Migrate()
 class Config:
     """Configuration class to handle environment variables."""
     
-     # Fetch DATABASE_URL from environment variable
+    # Fetch DATABASE_URL from environment variable
     DATABASE_URL = os.getenv('DATABASE_URL')
 
     if not DATABASE_URL:
         raise ValueError("DATABASE_URL environment variable is required.")
-
    
     # Build the SQLAlchemy URI dynamically from environment variables
     SQLALCHEMY_DATABASE_URI = DATABASE_URL
@@ -28,9 +27,8 @@ class Config:
     # Disable track modifications to save memory
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
-    # CORS settings (you can customize this for specific origins in production)
+    # CORS settings
     CORS_HEADERS = 'Content-Type'
-
 
 def create_app():
     app = Flask(__name__)
@@ -44,6 +42,14 @@ def create_app():
     # Initialize database
     db.init_app(app)
     migrate.init_app(app, db)
+    
+    with app.app_context():
+        try:
+            # Create all database tables
+            db.create_all()
+        except Exception as e:
+            app.logger.error(f"Error creating database tables: {e}")
+            raise
 
     # Register blueprints
     from app.api import bp as api_bp
