@@ -1,8 +1,11 @@
 from bs4 import BeautifulSoup
-import requests
 import re
 import logging
 from app.scrapers.base import BaseScraper
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 class JumiaPhoneScraper(BaseScraper):
     def __init__(self):
@@ -72,11 +75,24 @@ class JumiaPhoneScraper(BaseScraper):
                 url = f"{self.base_url}?page={page}"
                 self.logger.info(f"Scraping page {page}: {url}")
                 
-                soup = self.get_soup(url)
+                # Get soup and wait for product containers
+                soup = self.get_soup(url, wait_for='article.prd')
                 if not soup:
                     continue
                 
+                # Wait for products to load
+                try:
+                    WebDriverWait(self.driver, 10).until(
+                        EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'article.prd'))
+                    )
+                except TimeoutException:
+                    self.logger.error(f"Timeout waiting for products on page {page}")
+                    continue
+                
+                # Get updated page source after waiting
+                soup = BeautifulSoup(self.driver.page_source, 'html.parser')
                 product_containers = soup.find_all('article', class_='prd')
+                
                 if not product_containers:
                     self.logger.info(f"No products found on page {page}")
                     break

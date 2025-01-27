@@ -1,0 +1,10 @@
+[buildpack]
+name = "Python"
+
+[[buildpack.build.env]]
+name = "GOOGLE_CHROME_BIN"
+value = "/app/.apt/usr/bin/google-chrome"
+
+[[buildpack.build.env]]
+name = "CHROMEDRIVER_PATH"
+value = "/app/.chromedriver/bin/chromedriver"
