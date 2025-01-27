@@ -74,7 +74,13 @@ wpp-price_tracker/
 │   │   └── js/
 │   │       └── main.js
 │   └── templates/
-├── media/            # This is where the media files are stored
+├── media/
+├── migrations/
+│   ├── versions/
+│   └── alembic.ini
+    ├── env.py
+    ├── README
+    └── script.py.mako
 ├── run.py
 ├── README.md
 

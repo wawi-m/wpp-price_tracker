@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 import requests
 from bs4 import BeautifulSoup
 from time import sleep
+from app import db
+from app.models import Product
 
 class BaseScraper(ABC):
     def __init__(self, base_url):
