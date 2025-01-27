@@ -7,7 +7,7 @@ from app.scrapers.base import BaseScraper
 class JumiaPhoneScraper(BaseScraper):
     def __init__(self):
         self.platform = 'Jumia'
-        self.base_url = 'https://www.jumia.co.ke/mobile-phones/#catalog-listing'
+        self.base_url = 'https://www.jumia.co.ke/phones-tablets/'
         super().__init__(self.base_url)
         self.logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ class JumiaPhoneScraper(BaseScraper):
             discount = round(((old_price - price) / old_price) * 100, 2) if old_price > price else 0
             
             item_id = link_elem.get('data-id', '')
-            category = 'Phone'
+            category = 'Mobile Phones'
 
             # Create product dictionary
             return {
@@ -63,19 +63,36 @@ class JumiaPhoneScraper(BaseScraper):
             self.logger.error(f'Error extracting product: {str(e)}')
             return None
 
-    def scrape_products(self):
-        try:
-            soup = self.get_soup(self.base_url)
-            products = []
-            product_containers = soup.find_all('article', class_='prd')
-            
-            for container in product_containers:
-                product = self.extract_product_details(container)
-                if product:
-                    products.append(product)
-            
-            self.logger.info(f'Successfully scraped {len(products)} products from Jumia Phones')
-            return products
-        except Exception as e:
-            self.logger.error(f'Error scraping Jumia Phones: {str(e)}')
-            return []
+    def scrape_products(self, max_pages=3):
+        """Scrape products from multiple pages"""
+        all_products = []
+        
+        for page in range(1, max_pages + 1):
+            try:
+                url = f"{self.base_url}?page={page}"
+                self.logger.info(f"Scraping page {page}: {url}")
+                
+                soup = self.get_soup(url)
+                if not soup:
+                    continue
+                
+                product_containers = soup.find_all('article', class_='prd')
+                if not product_containers:
+                    self.logger.info(f"No products found on page {page}")
+                    break
+                
+                page_products = []
+                for container in product_containers:
+                    product = self.extract_product_details(container)
+                    if product:
+                        page_products.append(product)
+                
+                self.logger.info(f"Scraped {len(page_products)} products from page {page}")
+                all_products.extend(page_products)
+                
+            except Exception as e:
+                self.logger.error(f'Error scraping page {page}: {str(e)}')
+                continue
+        
+        self.logger.info(f'Successfully scraped total of {len(all_products)} products from Jumia phones')
+        return all_products
