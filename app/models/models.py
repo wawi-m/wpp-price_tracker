@@ -2,20 +2,41 @@ from datetime import datetime
 from app import db
 
 class Platform(db.Model):
-    __tablename__ = 'platform'
+    __tablename__ = 'platforms'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
     url = db.Column(db.String(200), nullable=False)
     products = db.relationship('Product', backref='platform', lazy=True)
 
+    @staticmethod
+    def insert_default_platforms():
+        default_platforms = [
+            {'name': 'Jumia', 'url': 'https://www.jumia.co.ke'},
+            {'name': 'Kilimall', 'url': 'https://www.kilimall.co.ke'}
+        ]
+        for platform_data in default_platforms:
+            if not Platform.query.filter_by(name=platform_data['name']).first():
+                platform = Platform(**platform_data)
+                db.session.add(platform)
+        db.session.commit()
+
 class Category(db.Model):
-    __tablename__ = 'category'
+    __tablename__ = 'categories'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
     products = db.relationship('Product', backref='category', lazy=True)
 
+    @staticmethod
+    def insert_default_categories():
+        default_categories = ['Mobile Phones', 'Televisions']
+        for category_name in default_categories:
+            if not Category.query.filter_by(name=category_name).first():
+                category = Category(name=category_name)
+                db.session.add(category)
+        db.session.commit()
+
 class Product(db.Model):
-    __tablename__ = 'product'
+    __tablename__ = 'products'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     url = db.Column(db.String(500), unique=True, nullable=False)
@@ -25,8 +46,8 @@ class Product(db.Model):
     currency = db.Column(db.String(3), default='KES')
     last_price_update = db.Column(db.DateTime, default=datetime.utcnow)
     price_history = db.Column(db.JSON, default=list)  # Store price history as JSON array
-    platform_id = db.Column(db.Integer, db.ForeignKey('platform.id'), nullable=False)
-    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
+    platform_id = db.Column(db.Integer, db.ForeignKey('platforms.id'), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -48,4 +69,4 @@ class Product(db.Model):
             
         # Update current price
         self.current_price = new_price
-        self.last_price_update = datetime()
+        self.last_price_update = datetime.utcnow()

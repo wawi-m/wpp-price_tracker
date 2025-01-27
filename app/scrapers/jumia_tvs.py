@@ -7,9 +7,18 @@ from app.scrapers.base import BaseScraper
 class JumiaTVScraper(BaseScraper):
     def __init__(self):
         self.platform = 'Jumia'
-        self.base_url = 'https://www.jumia.co.ke/televisions/#catalog-listing'
+        self.base_url = 'https://www.jumia.co.ke/televisions/'
         super().__init__(self.base_url)
         self.logger = logging.getLogger(__name__)
+
+    def clean_price(self, price_str):
+        """Clean price string and convert to float"""
+        try:
+            # Remove currency symbol and commas, then convert to float
+            price_str = re.sub(r'[^\d.]', '', price_str)
+            return float(price_str) if price_str else 0.0
+        except (ValueError, TypeError):
+            return 0.0
 
     def extract_product_details(self, container):
         try:
@@ -19,14 +28,24 @@ class JumiaTVScraper(BaseScraper):
                 return None
 
             # Extract product details
-            name = link_elem.get('data-ga4-item_name', '').strip()
+            name = link_elem.get('data-name', '').strip()
             url = f"https://www.jumia.co.ke{link_elem.get('href', '')}"
             image_url = link_elem.find('img')['data-src'] if link_elem.find('img') else ''
-            price = float(link_elem.get('data-ga4-price', 0))
-            discount = float(link_elem.get('data-ga4-discount', 0))
-            old_price = price / (1 - discount/100) if discount else price
-            item_id = link_elem.get('data-ga4-item_id', '')
-            category = 'Television'
+            
+            # Extract price from the price div
+            price_div = container.find('div', class_='prc')
+            price_str = price_div.text.strip() if price_div else '0'
+            price = self.clean_price(price_str)
+            
+            # Extract old price
+            old_price_div = container.find('div', class_='old')
+            old_price = self.clean_price(old_price_div.text.strip()) if old_price_div else price
+            
+            # Calculate discount
+            discount = round(((old_price - price) / old_price) * 100, 2) if old_price > price else 0
+            
+            item_id = link_elem.get('data-id', '')
+            category = 'TV'
 
             # Create product dictionary
             return {
@@ -55,6 +74,7 @@ class JumiaTVScraper(BaseScraper):
                 if product:
                     products.append(product)
             
+            self.logger.info(f'Successfully scraped {len(products)} products from Jumia TVs')
             return products
         except Exception as e:
             self.logger.error(f'Error scraping Jumia TVs: {str(e)}')
