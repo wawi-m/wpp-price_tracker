@@ -71,5 +71,3 @@ class JumiaTVScraper(BaseScraper):
         except Exception as e:
             self.logger.error(f'Error scraping Jumia TVs: {str(e)}')
             return []
-
-        return products
