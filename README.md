@@ -45,44 +45,8 @@ python run.py
 
 ## Project Structure
 
-wpp-price_tracker/
-├── .dockerignore
-├── .env
-├── .git/
-├── .gitignore
-├── docker-compose.yaml
-├── requirements.txt
-├── app/
-│   ├── __init__.py
-│   ├── api/
-│   │   ├── __init__.py
-│   │   └── routes.py
-│   ├── models/
-│   │   └── models.py
-│   ├── scrapers/
-│   │   ├── __init__.py
-│   │   ├── base.py
-│   │   ├── jumia_phones.py
-│   │   ├── jumia_tvs.py
-│   │   ├── kilimall_phones.py
-│   │   ├── kilimall_tvs.py
-│   │   └── run_scrapers.py
-│   ├── routes.py
-│   ├── static/
-│   │   ├── css/
-│   │   │   └── style.css
-│   │   └── js/
-│   │       └── main.js
-│   └── templates/
-├── media/
-├── migrations/
-│   ├── versions/
-│   └── alembic.ini
-    ├── env.py
-    ├── README
-    └── script.py.mako
-├── run.py
-├── README.md
+wpp-price_tracker/ ├── .env ├── Connecting ├── Procfile ├── README.md ├── pycache/ ├── app/ │ ├── init.py │ ├── pycache/ │ ├── api/ │ ├── models/ │ ├── routes.py │ ├── scrapers/ │ ├── static/ │ └── templates/ ├── buildpack.toml ├── migrations/ │ ├── README │ ├── pycache/ │ ├── alembic.ini │ ├── env.py │ ├── script.py.mako │ └── versions/ ├── requirements.txt └── run.py
+
 
 ## API Endpoints
 
