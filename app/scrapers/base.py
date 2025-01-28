@@ -29,7 +29,7 @@ class BaseScraper(ABC):
         chrome_options.add_argument('--disable-blink-features=AutomationControlled')
         chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
         chrome_options.add_experimental_option('useAutomationExtension', False)
-        
+
         # Add random user agent
         user_agents = [
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -38,7 +38,7 @@ class BaseScraper(ABC):
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Edge/120.0.0.0'
         ]
         chrome_options.add_argument(f'user-agent={random.choice(user_agents)}')
-        
+
         try:
             service = Service(ChromeDriverManager().install())
             self.driver = webdriver.Chrome(service=service, options=chrome_options)
@@ -54,17 +54,17 @@ class BaseScraper(ABC):
             try:
                 sleep(delay)  # Rate limiting
                 self.driver.get(url)
-                
+
                 if wait_for:
                     # Wait for specific element to be present
                     WebDriverWait(self.driver, 10).until(
                         EC.presence_of_element_located((By.CSS_SELECTOR, wait_for))
                     )
-                
+
                 # Get page source after JavaScript execution
                 page_source = self.driver.page_source
                 return BeautifulSoup(page_source, 'html.parser')
-            
+
             except Exception as e:
                 self.logger.error(f"Attempt {attempt + 1}/{max_retries} failed: {str(e)}")
                 if attempt == max_retries - 1:  # Last attempt

@@ -1,10 +1,8 @@
 # app/scrapers/run_scrapers.py
 from app import create_app, db
 from app.models.models import Platform, Category, Product
-from app.scrapers.jumia_phones import JumiaPhoneScraper
-from app.scrapers.jumia_tvs import JumiaTVScraper
-from app.scrapers.kilimall_phones import KilimallPhoneScraper
-from app.scrapers.kilimall_tvs import KilimallTVScraper
+from app.scrapers.jumia_scraper import JumiaScraper
+from app.scrapers.kilimall_scraper import KilimallScraper
 import logging
 from datetime import datetime
 
@@ -13,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def save_products(products, category_name):
-    """Save scraped products to database"""
+    """Save scraped products to the database."""
     try:
         category = Category.query.filter_by(name=category_name).first()
         if not category:
@@ -77,28 +75,28 @@ def save_products(products, category_name):
         raise
 
 def run_all_scrapers():
-    """Run all scrapers and save data"""
+    """Run all scrapers and save data."""
     app = create_app()
     with app.app_context():
-        # Initialize scrapers
+        # Initialize scrapers (now using unified scrapers for Jumia and Kilimall)
         scrapers = [
-            (JumiaPhoneScraper(), "Mobile Phones"),
-            (JumiaTVScraper(), "Televisions"),
-            (KilimallPhoneScraper(), "Mobile Phones"),
-            (KilimallTVScraper(), "Televisions")
+            (JumiaScraper(), "Mobile Phones"),
+            (JumiaScraper(), "Televisions"),
+            (KilimallScraper(), "Mobile Phones"),
+            (KilimallScraper(), "Televisions")
         ]
         
         total_products = 0
         # Run each scraper
         for scraper, category in scrapers:
             try:
-                logger.info(f"Running {scraper.__class__.__name__}")
-                products = scraper.scrape_products()
+                logger.info(f"Running {scraper.__class__.__name__} for category {category}")
+                products = scraper.scrape_all()
                 if products:
                     total_products += len(products)
                     save_products(products, category)
             except Exception as e:
-                logger.error(f"Error running {scraper.__class__.__name__}: {str(e)}")
+                logger.error(f"Error running {scraper.__class__.__name__} for category {category}: {str(e)}")
         
         logger.info(f"Scraping completed. Total products processed: {total_products}")
 

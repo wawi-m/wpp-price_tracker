@@ -1,11 +1,7 @@
-from .jumia_phones import JumiaPhoneScraper
-from .jumia_tvs import JumiaTVScraper
-from .kilimall_phones import KilimallPhoneScraper
-from .kilimall_tvs import KilimallTVScraper
+from .jumia_scraper import JumiaScraper
+from .kilimall_scraper import KilimallScraper
 
 __all__ = [
-    'JumiaPhoneScraper',
-    'JumiaTVScraper',
-    'KilimallPhoneScraper',
-    'KilimallTVScraper'
+    'JumiaScraper',
+    'KilimallScraper'
 ]

@@ -1,0 +1,2 @@
+flask db migrate -m "Increase product name field length to 200 characters"
+flask db upgrade

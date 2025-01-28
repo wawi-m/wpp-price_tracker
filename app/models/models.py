@@ -38,7 +38,7 @@ class Category(db.Model):
 class Product(db.Model):
     __tablename__ = 'products'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False)
+    name = db.Column(db.String(200), nullable=False)  # Increased to 200
     url = db.Column(db.String(500), unique=True, nullable=False)
     image_url = db.Column(db.String(500))
     description = db.Column(db.Text)
@@ -70,3 +70,12 @@ class Product(db.Model):
         # Update current price
         self.current_price = new_price
         self.last_price_update = datetime.utcnow()
+
+    @property
+    def discount(self):
+        """Calculate discount if both price and old_price exist"""
+        if self.price_history:
+            old_price = self.price_history[-1]['price']
+            if old_price > self.current_price:
+                return round(((old_price - self.current_price) / old_price) * 100, 2)
+        return 0.0

@@ -45,7 +45,7 @@ def get_products():
         'url': p.url,
         'image_url': p.image_url,
         'platform': p.platform.name,
-        'current_price': p.prices[-1].price if p.prices else None
+        'current_price': p.prices[-1].price if p.prices else None  # Handle no price case
     } for p in pagination.items]
     
     return jsonify({
@@ -57,8 +57,6 @@ def get_products():
 
 @app.route('/api/v1/products/<int:id>')
 def get_product(id):
-    # product = Product.query.get_or_404(id)
-    # Optimized query with joinedload to prevent N+1 problem
     product = Product.query.options(joinedload(Product.platform), joinedload(Product.prices)).get(id)
     
     if not product:
@@ -78,19 +76,41 @@ def get_product(id):
 
 @app.route('/api/v1/categories')
 def get_categories():
-    categories = Category.query.all()
-    return jsonify([{
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    query = Category.query
+
+    pagination = query.paginate(page=page, per_page=per_page)
+    categories = [{
         'id': c.id,
         'name': c.name
-    } for c in categories])
+    } for c in pagination.items]
+
+    return jsonify({
+        'items': categories,
+        'page': pagination.page,
+        'total_pages': pagination.pages,
+        'has_next': pagination.has_next
+    })
 
 @app.route('/api/v1/platforms')
 def get_platforms():
-    platforms = Platform.query.all()
-    return jsonify([{
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    query = Platform.query
+
+    pagination = query.paginate(page=page, per_page=per_page)
+    platforms = [{
         'id': p.id,
         'name': p.name
-    } for p in platforms])
+    } for p in pagination.items]
+
+    return jsonify({
+        'items': platforms,
+        'page': pagination.page,
+        'total_pages': pagination.pages,
+        'has_next': pagination.has_next
+    })
 
 @app.route('/api/v1/stats')
 def get_stats():

@@ -3,6 +3,8 @@ from app import create_app, db
 from app.models.models import Platform, Category  # Import your models
 from app.scrapers.run_scrapers import run_all_scrapers  # Import the scraper function
 import logging
+from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -59,7 +61,20 @@ def run_scrapers():
         except Exception as e:
             logger.error(f"Error running scrapers: {str(e)}")
 
+def start_scheduler():
+    """Start the APScheduler to run the scrapers periodically."""
+    scheduler = BackgroundScheduler()
+
+    # Add job to run the scrapers every 3 hours
+    scheduler.add_job(run_scrapers, 'interval', hours=3, id='scrape_task', replace_existing=True)
+
+    # Start the scheduler
+    scheduler.start()
+
+    logger.info("Scheduler started, scrapers will run every 3 hours.")
+
 if __name__ == '__main__':
     init_db()  # Initialize database before running the app
-    run_scrapers()  # Run the scrapers
+    start_scheduler()  # Start the scheduler for periodic scraping
+    run_scrapers()  # Optionally, you can run scrapers immediately
     app.run(debug=True)  # Start the Flask app

@@ -9,10 +9,11 @@ from datetime import datetime, timedelta
 
 @bp.route('/products')
 def get_products():
+    """Get paginated list of products"""
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
     products = Product.query.paginate(page=page, per_page=per_page, error_out=False)
-    
+
     return jsonify({
         'items': [{
             'id': p.id,
@@ -30,6 +31,7 @@ def get_products():
 
 @bp.route('/products/<int:id>')
 def get_product(id):
+    """Get product details by ID"""
     product = Product.query.get_or_404(id)
     return jsonify({
         'id': product.id,
@@ -45,6 +47,7 @@ def get_product(id):
 
 @bp.route('/products/search')
 def search_products():
+    """Search for products by name, category, and platform"""
     query = request.args.get('q', '')
     category = request.args.get('category')
     platform = request.args.get('platform')
@@ -80,11 +83,13 @@ def search_products():
 
 @bp.route('/products/<int:id>/prices')
 def get_price_history(id):
+    """Get price history for a product"""
     product = Product.query.get_or_404(id)
     return jsonify(product.price_history)
 
 @bp.route('/products/<int:id>/visualization')
 def price_visualization(id):
+    """Visualize price history of a product using Plotly"""
     product = Product.query.get_or_404(id)
     
     if not product.price_history:
@@ -98,6 +103,7 @@ def price_visualization(id):
 
 @bp.route('/categories')
 def get_categories():
+    """Get all product categories"""
     categories = Category.query.all()
     return jsonify([{
         'id': c.id,
@@ -107,6 +113,7 @@ def get_categories():
 
 @bp.route('/platforms')
 def get_platforms():
+    """Get all platforms"""
     platforms = Platform.query.all()
     return jsonify([{
         'id': p.id,
@@ -117,7 +124,7 @@ def get_platforms():
 
 @bp.route('/stats')
 def get_stats():
-    # Calculate platform stats
+    """Get statistics on products, platforms, and price changes"""
     platforms = Platform.query.all()
     platform_stats = {}
     
