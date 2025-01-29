@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
@@ -38,33 +38,9 @@ def create_app(database_url=None):
             app.logger.error(f"Error creating database tables: {e}")
             raise
 
-    # Register the API Blueprint (routes for the API are in app/api/routes.py)
-    from app.api import bp as api_bp
-    app.register_blueprint(api_bp, url_prefix='/api/v1')
-
-    # Define the homepage route
-    @app.route('/')
-    def index():
-        return render_template('index.html')
-
-    # API documentation route
-    @app.route('/api')
-    def api_docs():
-        return {
-            "message": "Welcome to Price Tracker API",
-            "version": "1.0",
-            "endpoints": {
-                "products": "/api/v1/products",
-                "product_detail": "/api/v1/products/<id>",
-                "search": "/api/v1/products/search",
-                "price_history": "/api/v1/products/<id>/prices",
-                "price_visualization": "/api/v1/products/<id>/visualization",
-                "price_visualization_data": "/api/v1/products/<id>/visualization/data",
-                "categories": "/api/v1/categories",
-                "platforms": "/api/v1/platforms",
-                "stats": "/api/v1/stats"
-            }
-        }
+    # Import and register routes
+    from app import routes
+    app.register_blueprint(routes.bp)
 
     return app
 
