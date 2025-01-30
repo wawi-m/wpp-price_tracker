@@ -46,7 +46,7 @@ def save_products(products, category_name):
                         product.update_price(product_data['price'])
                     product.name = product_data['name']
                     product.image_url = product_data.get('image_url')
-                    product.last_updated = datetime.utcnow()
+                    product.last_price_update = datetime.utcnow()
                     products_updated += 1
                 else:
                     # Create new product
@@ -57,7 +57,7 @@ def save_products(products, category_name):
                         current_price=product_data['price'],
                         platform=platform,
                         category=category,
-                        last_updated=datetime.utcnow()
+                        last_price_update=datetime.utcnow()
                     )
                     db.session.add(product)
                     products_created += 1
