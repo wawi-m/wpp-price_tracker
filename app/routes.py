@@ -1,7 +1,7 @@
-from flask import Blueprint, render_template, jsonify, request, abort, url_for
+from flask import Blueprint, render_template, jsonify, request, abort
 from app import db
 from app.models.models import Product, Platform, Category
-from sqlalchemy import func
+from sqlalchemy import func, case
 from sqlalchemy.orm import joinedload
 from datetime import datetime, timedelta
 
@@ -28,7 +28,7 @@ def price_history():
 def get_products():
     page = request.args.get('page', 1, type=int)
     per_page = 12
-    query = Product.query
+    query = Product.query.order_by(Product.updated_at.desc())
     
     # Apply filters
     search = request.args.get('search')
@@ -81,6 +81,35 @@ def get_product(id):
         'last_update': product.last_price_update.isoformat() if product.last_price_update else None
     })
 
+@bp.route('/api/v1/stats')
+def get_stats():
+    # Get platform-specific stats
+    platform_stats = db.session.query(
+        Platform.name,
+        func.count(Product.id).label('total_products'),
+        func.count(Product.price_history).label('total_prices')
+    ).join(Product).group_by(Platform.name).all()
+    
+    # Calculate price changes in the last 24 hours
+    yesterday = datetime.utcnow() - timedelta(days=1)
+    price_changes = db.session.query(
+        func.sum(case((Product.current_price < Product.price_history[-1]['price'], 1), else_=0)).label('drops'),
+        func.sum(case((Product.current_price > Product.price_history[-1]['price'], 1), else_=0)).label('increases')
+    ).filter(Product.last_price_update >= yesterday).first()
+
+    stats = {
+        'total_products': Product.query.count(),
+        'price_drops': price_changes.drops if price_changes.drops else 0,
+        'price_increases': price_changes.increases if price_changes.increases else 0
+    }
+
+    # Add platform-specific stats
+    for platform in platform_stats:
+        stats[f'{platform.name.lower()}_products'] = platform.total_products
+        stats[f'{platform.name.lower()}_prices'] = platform.total_prices
+
+    return jsonify(stats)
+
 @bp.route('/api/v1/categories')
 def get_categories():
     page = request.args.get('page', 1, type=int)
@@ -118,16 +147,4 @@ def get_platforms():
         'page': pagination.page,
         'total_pages': pagination.pages,
         'has_next': pagination.has_next
-    })
-
-@bp.route('/api/v1/stats')
-def get_stats():
-    total_products = Product.query.count()
-    total_platforms = Platform.query.count()
-    total_categories = Category.query.count()
-    
-    return jsonify({
-        'total_products': total_products,
-        'total_platforms': total_platforms,
-        'total_categories': total_categories
     })

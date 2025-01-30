@@ -17,7 +17,7 @@ graph TB
     subgraph Backend[Backend - Flask Application]
         API[API Routes]
         BP[Blueprint - main]
-        DB[(SQLite Database)]
+        DB[(PostgreSQL Database)]
         
         subgraph Models[Database Models]
             PM[Product Model]
