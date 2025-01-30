@@ -279,234 +279,255 @@ function getPlatformBadgeClass(platform) {
 }
 
 async function loadStats() {
-    const response = await fetch('/api/v1/stats');
-    const stats = await response.json();
-    
-    // Update general stats
-    document.getElementById('totalProducts').textContent = stats.total_products;
-    document.getElementById('priceDrops').textContent = stats.price_decreases || 0;
-    document.getElementById('priceIncreases').textContent = stats.price_increases || 0;
-    
-    // Update platform-specific stats
-    if (stats.platform_stats) {
-        document.getElementById('jumiaProducts').textContent = 
-            stats.platform_stats.jumia?.total_products || 0;
-        document.getElementById('kilimallProducts').textContent = 
-            stats.platform_stats.kilimall?.total_products || 0;
-        document.getElementById('jumiaPrices').textContent = 
-            `${stats.platform_stats.jumia?.total_prices || 0} prices tracked`;
-        document.getElementById('kilimallPrices').textContent = 
-            `${stats.platform_stats.kilimall?.total_prices || 0} prices tracked`;
+    try {
+        const response = await fetch('/api/v1/stats');
+        const data = await response.json();
+        
+        // Update general stats
+        document.getElementById('totalProducts').textContent = data.total_products;
+        document.getElementById('priceDrops').textContent = data.price_decreases || 0;
+        document.getElementById('priceIncreases').textContent = data.price_increases || 0;
+        
+        // Update platform-specific stats
+        if (data.platform_stats) {
+            document.getElementById('jumiaProducts').textContent = 
+                data.platform_stats.jumia?.total_products || 0;
+            document.getElementById('kilimallProducts').textContent = 
+                data.platform_stats.kilimall?.total_products || 0;
+            document.getElementById('jumiaPrices').textContent = 
+                `${data.platform_stats.jumia?.total_prices || 0} prices tracked`;
+            document.getElementById('kilimallPrices').textContent = 
+                `${data.platform_stats.kilimall?.total_prices || 0} prices tracked`;
+        }
+    } catch (error) {
+        console.error('Error loading stats:', error);
     }
 }
 
 async function loadFilters() {
-    const [categories, platforms] = await Promise.all([
-        fetch('/api/v1/categories').then(r => r.json()),
-        fetch('/api/v1/platforms').then(r => r.json())
-    ]);
-
-    const categorySelect = document.getElementById('categoryFilter');
-    categories.forEach(category => {
-        const option = document.createElement('option');
-        option.value = category.id;
-        option.textContent = category.name;
-        categorySelect.appendChild(option);
-    });
-
-    const platformSelect = document.getElementById('platformFilter');
-    platforms.forEach(platform => {
-        const option = document.createElement('option');
-        option.value = platform.id;
-        option.textContent = platform.name;
-        platformSelect.appendChild(option);
-    });
-
-    // Also populate comparison selects
-    const productSelects = ['product1', 'product2'];
-    const products = await fetch('/api/v1/products').then(r => r.json());
-    
-    productSelects.forEach(selectId => {
-        const select = document.getElementById(selectId);
-        products.items.forEach(product => {
+    try {
+        // Load platforms
+        const platformsResponse = await fetch('/api/v1/platforms');
+        const platformsData = await platformsResponse.json();
+        const platformSelect = document.getElementById('platformFilter');
+        platformsData.items.forEach(platform => {
             const option = document.createElement('option');
-            option.value = product.id;
-            option.textContent = `${product.name} (${product.platform})`;
-            select.appendChild(option);
+            option.value = platform.id;
+            option.textContent = platform.name;
+            platformSelect.appendChild(option);
         });
-    });
+
+        // Load categories
+        const categoriesResponse = await fetch('/api/v1/categories');
+        const categoriesData = await categoriesResponse.json();
+        const categorySelect = document.getElementById('categoryFilter');
+        categoriesData.items.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            categorySelect.appendChild(option);
+        });
+
+        // Also populate comparison selects
+        const productSelects = ['product1', 'product2'];
+        const products = await fetch('/api/v1/products').then(r => r.json());
+        
+        productSelects.forEach(selectId => {
+            const select = document.getElementById(selectId);
+            products.items.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.name} (${product.platform})`;
+                select.appendChild(option);
+            });
+        });
+    } catch (error) {
+        console.error('Error loading filters:', error);
+    }
 }
 
 async function loadProducts(page = 1, append = false) {
-    const searchQuery = document.getElementById('searchInput').value;
-    const categoryId = document.getElementById('categoryFilter').value;
-    const platformId = document.getElementById('platformFilter').value;
+    try {
+        const searchQuery = document.getElementById('searchInput').value;
+        const categoryId = document.getElementById('categoryFilter').value;
+        const platformId = document.getElementById('platformFilter').value;
 
-    const params = new URLSearchParams({
-        page,
-        search: searchQuery,
-        category_id: categoryId,
-        platform_id: platformId
-    });
+        const params = new URLSearchParams({
+            page,
+            search: searchQuery,
+            category_id: categoryId,
+            platform_id: platformId
+        });
 
-    const response = await fetch(`/api/v1/products?${params}`);
-    const data = await response.json();
+        const response = await fetch(`/api/v1/products?${params}`);
+        const data = await response.json();
 
-    const container = document.getElementById('productsList');
-    if (!append) {
-        container.innerHTML = '';
-        currentPage = 1;
-    }
+        const container = document.getElementById('productsList');
+        if (!append) {
+            container.innerHTML = '';
+            currentPage = 1;
+        }
 
-    data.items.forEach(product => {
-        const col = document.createElement('div');
-        col.className = 'col-md-6 mb-4';
-        col.innerHTML = `
-            <div class="card product-card h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h5 class="card-title mb-0">${product.name}</h5>
-                        <span class="platform-badge ${getPlatformBadgeClass(product.platform)}">
-                            ${product.platform}
-                        </span>
-                    </div>
-                    <p class="price mb-2">
-                        ${formatPrice(product.current_price)}
-                        <span class="price-change price-down">
-                            <i class="fas fa-arrow-down"></i> 5%
-                        </span>
-                    </p>
-                    <div class="d-flex justify-content-between mt-3">
-                        <button class="btn btn-primary btn-sm view-history" data-id="${product.id}">
-                            <i class="fas fa-chart-line"></i> Price History
-                        </button>
-                        <a href="${product.url}" target="_blank" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-external-link-alt"></i> View on Site
-                        </a>
+        data.items.forEach(product => {
+            const col = document.createElement('div');
+            col.className = 'col-md-6 mb-4';
+            col.innerHTML = `
+                <div class="card product-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">${product.name}</h5>
+                            <span class="platform-badge ${getPlatformBadgeClass(product.platform)}">
+                                ${product.platform}
+                            </span>
+                        </div>
+                        <p class="price mb-2">
+                            ${formatPrice(product.current_price)}
+                            <span class="price-change price-down">
+                                <i class="fas fa-arrow-down"></i> 5%
+                            </span>
+                        </p>
+                        <div class="d-flex justify-content-between mt-3">
+                            <button class="btn btn-primary btn-sm view-history" data-id="${product.id}">
+                                <i class="fas fa-chart-line"></i> Price History
+                            </button>
+                            <a href="${product.url}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-external-link-alt"></i> View on Site
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
-        container.appendChild(col);
-    });
+            `;
+            container.appendChild(col);
+        });
 
-    document.getElementById('loadMore').style.display = 
-        data.has_next ? 'block' : 'none';
+        document.getElementById('loadMore').style.display = 
+            data.has_next ? 'block' : 'none';
+    } catch (error) {
+        console.error('Error loading products:', error);
+    }
 }
 
 async function loadPriceHistory(productId) {
-    const response = await fetch(`/api/v1/products/${productId}`);
-    const product = await response.json();
+    try {
+        const response = await fetch(`/api/v1/products/${productId}`);
+        const data = await response.json();
 
-    document.getElementById('productDetails').innerHTML = `
-        <div class="d-flex justify-content-between align-items-start mb-3">
-            <h6 class="mb-0">${product.name}</h6>
-            <span class="platform-badge ${getPlatformBadgeClass(product.platform)}">
-                ${product.platform}
-            </span>
-        </div>
-        <p class="price mb-2">${formatPrice(product.prices[product.prices.length - 1].price)}</p>
-        <a href="${product.url}" target="_blank" class="btn btn-primary btn-sm w-100">
-            <i class="fas fa-external-link-alt"></i> View on Site
-        </a>
-    `;
+        document.getElementById('productDetails').innerHTML = `
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <h6 class="mb-0">${data.name}</h6>
+                <span class="platform-badge ${getPlatformBadgeClass(data.platform)}">
+                    ${data.platform}
+                </span>
+            </div>
+            <p class="price mb-2">${formatPrice(data.prices[data.prices.length - 1].price)}</p>
+            <a href="${data.url}" target="_blank" class="btn btn-primary btn-sm w-100">
+                <i class="fas fa-external-link-alt"></i> View on Site
+            </a>
+        `;
 
-    const prices = product.prices;
-    const trace = {
-        x: prices.map(p => new Date(p.timestamp)),
-        y: prices.map(p => p.price),
-        type: 'scatter',
-        mode: 'lines+markers',
-        line: {
-            color: '#000DFF',
-            width: 2
-        },
-        marker: {
-            color: '#6B73FF',
-            size: 6
-        }
-    };
+        const prices = data.prices;
+        const trace = {
+            x: prices.map(p => new Date(p.timestamp)),
+            y: prices.map(p => p.price),
+            type: 'scatter',
+            mode: 'lines+markers',
+            line: {
+                color: '#000DFF',
+                width: 2
+            },
+            marker: {
+                color: '#6B73FF',
+                size: 6
+            }
+        };
 
-    const layout = {
-        title: 'Price History',
-        paper_bgcolor: 'rgba(0,0,0,0)',
-        plot_bgcolor: 'rgba(0,0,0,0)',
-        xaxis: {
-            title: 'Date',
-            gridcolor: '#eee'
-        },
-        yaxis: {
-            title: 'Price (KES)',
-            gridcolor: '#eee'
-        },
-        margin: { t: 30, l: 60, r: 30, b: 40 }
-    };
+        const layout = {
+            title: 'Price History',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            xaxis: {
+                title: 'Date',
+                gridcolor: '#eee'
+            },
+            yaxis: {
+                title: 'Price (KES)',
+                gridcolor: '#eee'
+            },
+            margin: { t: 30, l: 60, r: 30, b: 40 }
+        };
 
-    Plotly.newPlot('priceChart', [trace], layout);
+        Plotly.newPlot('priceChart', [trace], layout);
+    } catch (error) {
+        console.error('Error loading price history:', error);
+    }
 }
 
 async function compareProducts() {
-    const product1Id = document.getElementById('product1').value;
-    const product2Id = document.getElementById('product2').value;
+    try {
+        const product1Id = document.getElementById('product1').value;
+        const product2Id = document.getElementById('product2').value;
 
-    if (!product1Id || !product2Id) return;
+        if (!product1Id || !product2Id) return;
 
-    const [product1, product2] = await Promise.all([
-        fetch(`/api/v1/products/${product1Id}`).then(r => r.json()),
-        fetch(`/api/v1/products/${product2Id}`).then(r => r.json())
-    ]);
+        const [product1, product2] = await Promise.all([
+            fetch(`/api/v1/products/${product1Id}`).then(r => r.json()),
+            fetch(`/api/v1/products/${product2Id}`).then(r => r.json())
+        ]);
 
-    const trace1 = {
-        x: product1.prices.map(p => new Date(p.timestamp)),
-        y: product1.prices.map(p => p.price),
-        name: product1.name,
-        type: 'scatter',
-        mode: 'lines+markers'
-    };
+        const trace1 = {
+            x: product1.prices.map(p => new Date(p.timestamp)),
+            y: product1.prices.map(p => p.price),
+            name: product1.name,
+            type: 'scatter',
+            mode: 'lines+markers'
+        };
 
-    const trace2 = {
-        x: product2.prices.map(p => new Date(p.timestamp)),
-        y: product2.prices.map(p => p.price),
-        name: product2.name,
-        type: 'scatter',
-        mode: 'lines+markers'
-    };
+        const trace2 = {
+            x: product2.prices.map(p => new Date(p.timestamp)),
+            y: product2.prices.map(p => p.price),
+            name: product2.name,
+            type: 'scatter',
+            mode: 'lines+markers'
+        };
 
-    const layout = {
-        title: 'Price Comparison',
-        paper_bgcolor: 'rgba(0,0,0,0)',
-        plot_bgcolor: 'rgba(0,0,0,0)',
-        xaxis: {
-            title: 'Date',
-            gridcolor: '#eee'
-        },
-        yaxis: {
-            title: 'Price (KES)',
-            gridcolor: '#eee'
-        }
-    };
+        const layout = {
+            title: 'Price Comparison',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            xaxis: {
+                title: 'Date',
+                gridcolor: '#eee'
+            },
+            yaxis: {
+                title: 'Price (KES)',
+                gridcolor: '#eee'
+            }
+        };
 
-    Plotly.newPlot('compareChart', [trace1, trace2], layout);
+        Plotly.newPlot('compareChart', [trace1, trace2], layout);
 
-    ['product1Details', 'product2Details'].forEach((detailId, index) => {
-        const product = index === 0 ? product1 : product2;
-        document.getElementById(detailId).innerHTML = `
-            <div class="card mt-3">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h6 class="mb-0">${product.name}</h6>
-                        <span class="platform-badge ${getPlatformBadgeClass(product.platform)}">
-                            ${product.platform}
-                        </span>
+        ['product1Details', 'product2Details'].forEach((detailId, index) => {
+            const product = index === 0 ? product1 : product2;
+            document.getElementById(detailId).innerHTML = `
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-0">${product.name}</h6>
+                            <span class="platform-badge ${getPlatformBadgeClass(product.platform)}">
+                                ${product.platform}
+                            </span>
+                        </div>
+                        <p class="price mb-2">${formatPrice(product.prices[product.prices.length - 1].price)}</p>
+                        <a href="${product.url}" target="_blank" class="btn btn-primary btn-sm w-100">
+                            View on Site
+                        </a>
                     </div>
-                    <p class="price mb-2">${formatPrice(product.prices[product.prices.length - 1].price)}</p>
-                    <a href="${product.url}" target="_blank" class="btn btn-primary btn-sm w-100">
-                        View on Site
-                    </a>
                 </div>
-            </div>
-        `;
-    });
+            `;
+        });
+    } catch (error) {
+        console.error('Error comparing products:', error);
+    }
 }
 
 function debounce(func, wait) {

@@ -1,11 +1,14 @@
-from flask import Blueprint, render_template, jsonify, request, abort
+from flask import Blueprint, render_template, jsonify, request, abort, url_for
 from app import db
 from app.models.models import Product, Platform, Category
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 from datetime import datetime, timedelta
 
-bp = Blueprint('main', __name__)
+bp = Blueprint('main', __name__, 
+              template_folder='templates',
+              static_folder='static',
+              static_url_path='/static')
 
 # Frontend Routes
 @bp.route('/')

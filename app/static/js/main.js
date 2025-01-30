@@ -21,7 +21,7 @@ function formatPrice(price) {
 // API Functions
 async function fetchAPI(endpoint) {
     try {
-        const response = await fetch(`/api/v1/${endpoint}`);
+        const response = await fetch(`/blueprint/api/v1/${endpoint}`);
         if (!response.ok) throw new Error('Network response was not ok');
         return await response.json();
     } catch (error) {
@@ -36,12 +36,15 @@ async function loadCategories() {
     if (!categories) return;
 
     const select = document.getElementById('categoryFilter');
-    categories.forEach(category => {
-        const option = document.createElement('option');
-        option.value = category.id;
-        option.textContent = category.name;
-        select.appendChild(option);
-    });
+    if (select) {
+        select.innerHTML = '<option value="">All Categories</option>';
+        categories.items.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            select.appendChild(option);
+        });
+    }
 }
 
 async function loadPlatforms() {
@@ -49,30 +52,35 @@ async function loadPlatforms() {
     if (!platforms) return;
 
     const select = document.getElementById('platformFilter');
-    platforms.forEach(platform => {
-        const option = document.createElement('option');
-        option.value = platform.id;
-        option.textContent = platform.name;
-        select.appendChild(option);
-    });
+    if (select) {
+        select.innerHTML = '<option value="">All Platforms</option>';
+        platforms.items.forEach(platform => {
+            const option = document.createElement('option');
+            option.value = platform.id;
+            option.textContent = platform.name;
+            select.appendChild(option);
+        });
+    }
 }
 
 async function loadProducts(page = 1) {
-    const searchQuery = document.getElementById('searchQuery').value;
-    const categoryId = document.getElementById('categoryFilter').value;
-    const platformId = document.getElementById('platformFilter').value;
+    const searchQuery = document.getElementById('searchQuery')?.value || '';
+    const categoryId = document.getElementById('categoryFilter')?.value || '';
+    const platformId = document.getElementById('platformFilter')?.value || '';
 
     const params = new URLSearchParams({
         page,
-        search: searchQuery,
-        category_id: categoryId,
-        platform_id: platformId
+        ...(searchQuery && { search: searchQuery }),
+        ...(categoryId && { category_id: categoryId }),
+        ...(platformId && { platform_id: platformId })
     });
 
     const products = await fetchAPI(`products?${params}`);
     if (!products) return;
 
     const container = document.getElementById('productsList');
+    if (!container) return;
+
     if (page === 1) container.innerHTML = '';
 
     products.items.forEach(product => {
@@ -80,8 +88,10 @@ async function loadProducts(page = 1) {
         container.appendChild(card);
     });
 
-    document.getElementById('loadMore').style.display = 
-        products.has_next ? 'block' : 'none';
+    const loadMoreBtn = document.getElementById('loadMore');
+    if (loadMoreBtn) {
+        loadMoreBtn.style.display = products.has_next ? 'block' : 'none';
+    }
 }
 
 function createProductCard(product) {
@@ -93,9 +103,9 @@ function createProductCard(product) {
             <div class="card-body">
                 <h5 class="card-title">${product.name}</h5>
                 <p class="card-text price">${formatPrice(product.current_price)}</p>
-                <p class="card-text platform">${product.platform_name}</p>
+                <p class="card-text platform">${product.platform}</p>
                 <div class="d-flex justify-content-between">
-                    <a href="/price-history/${product.id}" class="btn btn-primary">Price History</a>
+                    <a href="/price-history" class="btn btn-primary" data-product-id="${product.id}">Price History</a>
                     <a href="${product.url}" target="_blank" class="btn btn-outline-primary">View Product</a>
                 </div>
             </div>
@@ -109,45 +119,48 @@ async function loadProductsForComparison() {
     const products = await fetchAPI('products');
     if (!products) return;
 
-    const selects = ['product1', 'product2'];
-    selects.forEach(selectId => {
-        const select = document.getElementById(selectId);
-        products.items.forEach(product => {
-            const option = document.createElement('option');
-            option.value = product.id;
-            option.textContent = `${product.name} (${product.platform_name})`;
-            select.appendChild(option);
-        });
-    });
+    const product1Select = document.getElementById('product1');
+    const product2Select = document.getElementById('product2');
+
+    if (product1Select && product2Select) {
+        const options = products.items.map(product => `
+            <option value="${product.id}">${product.name} - ${formatPrice(product.current_price)}</option>
+        `).join('');
+
+        product1Select.innerHTML = '<option value="">Select a product...</option>' + options;
+        product2Select.innerHTML = '<option value="">Select a product...</option>' + options;
+    }
 }
 
 async function updateComparison() {
-    const product1Id = document.getElementById('product1').value;
-    const product2Id = document.getElementById('product2').value;
+    const product1Id = document.getElementById('product1')?.value;
+    const product2Id = document.getElementById('product2')?.value;
 
     if (!product1Id || !product2Id) return;
 
-    const [product1Data, product2Data] = await Promise.all([
+    const [product1, product2] = await Promise.all([
         fetchAPI(`products/${product1Id}`),
         fetchAPI(`products/${product2Id}`)
     ]);
 
-    if (!product1Data || !product2Data) return;
-
-    updateProductDetails('product1Details', product1Data);
-    updateProductDetails('product2Details', product2Data);
-    renderComparisonChart(product1Data, product2Data);
+    if (product1 && product2) {
+        updateProductDetails('product1Details', product1);
+        updateProductDetails('product2Details', product2);
+        renderComparisonChart(product1, product2);
+    }
 }
 
 function updateProductDetails(containerId, product) {
     const container = document.getElementById(containerId);
+    if (!container) return;
+
     container.innerHTML = `
         <div class="card">
             <img src="${product.image_url}" class="card-img-top" alt="${product.name}">
             <div class="card-body">
                 <h5 class="card-title">${product.name}</h5>
-                <p class="card-text price">${formatPrice(product.current_price)}</p>
-                <p class="card-text platform">${product.platform_name}</p>
+                <p class="card-text">Current Price: ${formatPrice(product.current_price)}</p>
+                <p class="card-text">Platform: ${product.platform}</p>
                 <a href="${product.url}" target="_blank" class="btn btn-primary">View Product</a>
             </div>
         </div>
@@ -155,27 +168,50 @@ function updateProductDetails(containerId, product) {
 }
 
 function renderComparisonChart(product1, product2) {
-    const trace1 = {
-        x: product1.price_history.map(p => p.timestamp),
-        y: product1.price_history.map(p => p.price),
-        name: product1.name,
-        type: 'scatter'
-    };
+    const chartContainer = document.getElementById('comparisonChart');
+    if (!chartContainer) return;
 
-    const trace2 = {
-        x: product2.price_history.map(p => p.timestamp),
-        y: product2.price_history.map(p => p.price),
-        name: product2.name,
-        type: 'scatter'
-    };
+    const ctx = chartContainer.getContext('2d');
+    if (window.priceComparisonChart) {
+        window.priceComparisonChart.destroy();
+    }
 
-    const layout = {
-        title: 'Price Comparison',
-        xaxis: { title: 'Date' },
-        yaxis: { title: 'Price (KES)' }
-    };
+    const datasets = [
+        {
+            label: product1.name,
+            data: product1.price_history.map(ph => ({
+                x: new Date(ph.date),
+                y: ph.price
+            })),
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        },
+        {
+            label: product2.name,
+            data: product2.price_history.map(ph => ({
+                x: new Date(ph.date),
+                y: ph.price
+            })),
+            borderColor: 'rgb(255, 99, 132)',
+            tension: 0.1
+        }
+    ];
 
-    Plotly.newPlot('comparisonChart', [trace1, trace2], layout);
+    window.priceComparisonChart = new Chart(ctx, {
+        type: 'line',
+        data: { datasets },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day'
+                    }
+                }
+            }
+        }
+    });
 }
 
 // Price History Page Functions
@@ -184,28 +220,32 @@ async function loadProductsForHistory() {
     if (!products) return;
 
     const select = document.getElementById('productSelect');
-    products.items.forEach(product => {
-        const option = document.createElement('option');
-        option.value = product.id;
-        option.textContent = `${product.name} (${product.platform_name})`;
-        select.appendChild(option);
-    });
+    if (select) {
+        select.innerHTML = '<option value="">Select a product...</option>';
+        products.items.forEach(product => {
+            const option = document.createElement('option');
+            option.value = product.id;
+            option.textContent = `${product.name} - ${formatPrice(product.current_price)}`;
+            select.appendChild(option);
+        });
+    }
 }
 
 async function updatePriceHistory() {
-    const productId = document.getElementById('productSelect').value;
+    const productId = document.getElementById('productSelect')?.value;
     if (!productId) return;
 
     const product = await fetchAPI(`products/${productId}`);
-    if (!product) return;
-
-    updatePriceStats(product);
-    renderPriceHistoryChart(product);
+    if (product) {
+        updatePriceStats(product);
+        renderPriceHistoryChart(product);
+    }
 }
 
 function updatePriceStats(product) {
-    const prices = product.price_history.map(p => p.price);
     document.getElementById('currentPrice').textContent = formatPrice(product.current_price);
+    
+    const prices = product.price_history.map(ph => ph.price);
     document.getElementById('lowestPrice').textContent = formatPrice(Math.min(...prices));
     document.getElementById('highestPrice').textContent = formatPrice(Math.max(...prices));
     document.getElementById('averagePrice').textContent = formatPrice(
@@ -214,18 +254,70 @@ function updatePriceStats(product) {
 }
 
 function renderPriceHistoryChart(product) {
-    const trace = {
-        x: product.price_history.map(p => p.timestamp),
-        y: product.price_history.map(p => p.price),
-        type: 'scatter',
-        mode: 'lines+markers'
+    const chartContainer = document.getElementById('priceHistoryChart');
+    if (!chartContainer) return;
+
+    const ctx = chartContainer.getContext('2d');
+    if (window.priceHistoryChart) {
+        window.priceHistoryChart.destroy();
+    }
+
+    const data = {
+        labels: product.price_history.map(ph => new Date(ph.date)),
+        datasets: [{
+            label: 'Price History',
+            data: product.price_history.map(ph => ph.price),
+            fill: false,
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }]
     };
 
-    const layout = {
-        title: `Price History for ${product.name}`,
-        xaxis: { title: 'Date' },
-        yaxis: { title: 'Price (KES)' }
-    };
-
-    Plotly.newPlot('priceHistoryChart', [trace], layout);
+    window.priceHistoryChart = new Chart(ctx, {
+        type: 'line',
+        data: data,
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day'
+                    }
+                }
+            }
+        }
+    });
 }
+
+// Initialize page-specific functions
+document.addEventListener('DOMContentLoaded', function() {
+    const path = window.location.pathname;
+
+    if (path === '/') {
+        loadCategories();
+        loadPlatforms();
+        loadProducts();
+
+        // Set up event listeners
+        document.getElementById('searchQuery')?.addEventListener('input', 
+            debounce(() => loadProducts(1), 500)
+        );
+        document.getElementById('categoryFilter')?.addEventListener('change', 
+            () => loadProducts(1)
+        );
+        document.getElementById('platformFilter')?.addEventListener('change', 
+            () => loadProducts(1)
+        );
+        document.getElementById('loadMore')?.addEventListener('click', 
+            () => loadProducts(document.querySelectorAll('.product-card').length / 12 + 1)
+        );
+    }
+    else if (path === '/compare') {
+        loadProductsForComparison();
+    }
+    else if (path === '/price-history') {
+        loadProductsForHistory();
+        document.getElementById('productSelect')?.addEventListener('change', updatePriceHistory);
+    }
+});

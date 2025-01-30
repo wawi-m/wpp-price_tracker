@@ -39,8 +39,8 @@ def create_app(database_url=None):
             raise
 
     # Import and register routes
-    from app import routes
-    app.register_blueprint(routes.bp)
+    from app.routes import bp as main_bp
+    app.register_blueprint(main_bp)
 
     return app
 
