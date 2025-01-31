@@ -23,8 +23,8 @@ pip install -r requirements.txt
 
 # Start database container
 echo "Starting PostgreSQL container..."
-docker-compose up db -d
-
+# docker-compose up db -d
+heroku login
 # Wait for database to be ready
 echo "Waiting for database to be ready..."
 sleep 5
