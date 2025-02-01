@@ -7,9 +7,10 @@
 ```mermaid
 graph TB
     subgraph Frontend ["🖥️ Frontend (HTML/CSS/JS)"]
-        style Frontend fill:#a8e6cf,stroke:#3d8168
+        style Frontend fill:#56806F,stroke:#3d8168
         UI[User Interface]
         subgraph Pages[Pages]
+            style Pages fill:#dcedc1,stroke:#8a9aa9
             HP[Home Page]
             CP[Compare Products]
             PH[Price History Charts]
@@ -18,6 +19,7 @@ graph TB
     end
 
     subgraph Backend ["⚙️ Backend (Flask)"]
+        style Backend fill:#b2beb5,stroke:#3d8168
         subgraph App["🖥️ App"]
         style App fill:#bcd4e6,stroke:#2b6cb0
         API[REST API]
@@ -55,10 +57,12 @@ graph TB
     API --> BP
     BP --> Models
     Models --> DB
+    RunScrapers --> Jumia
+    RunScrapers --> Kilimall
     Scheduler --> Jumia
     Scheduler --> Kilimall
-    Jumia --> Models
-    Kilimall --> Models
+    Jumia --> |Save Data| Models
+    Kilimall --> |Save Data| Models
 ```
 
 ## System Components
