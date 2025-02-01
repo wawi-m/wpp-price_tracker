@@ -1,165 +1,223 @@
-# Price Tracker Application Architecture
+# WPP Price Tracker Architecture
+
+> A modern web application for tracking product prices across multiple e-commerce platforms
 
 ## System Overview
 
-The Price Tracker is a web application that monitors and compares product prices across major e-commerce platforms in Kenya. Built with Flask and modern web technologies, it provides real-time price tracking and historical price analysis.
-
 ```mermaid
 graph TB
-    %% Frontend Components
-    subgraph Frontend[Frontend - Flask Templates]
-        UI[Web UI]
-        subgraph Pages[Pages]
-            HP[Home Page]
-            CP[Compare Page]
-            PH[Price History Page]
-        end
-        JS[JavaScript - main.js]
-        CSS[CSS - style.css]
+    subgraph Frontend ["🖥️ Frontend (HTML/CSS/JS)"]
+        style Frontend fill:#a8e6cf,stroke:#3d8168
+        UI[User Interface]
+        Charts[Price History Charts]
+        Compare[Compare Products]
     end
 
-    %% Backend Components
-    subgraph Backend[Backend - Flask Application]
-        API[API Routes]
-        BP[Blueprint - main]
-        DB[(PostgreSQL Database)]
-        
-        subgraph Models[Database Models]
-            PM[Product Model]
-            CM[Category Model]
-            PLM[Platform Model]
-            PH_M[PriceHistory Model]
-        end
-        
-        subgraph Scrapers[Web Scrapers]
-            JS_S[Jumia Scraper]
-            KM_S[Kilimall Scraper]
-            RS[run_scrapers.py]
-            SC[Scheduler]
-        end
-
-        subgraph Config[Configuration]
-            ENV[Environment Variables]
-            CFG[Config Classes]
-        end
+    subgraph Backend ["⚙️ Backend (Flask)"]
+        style Backend fill:#bcd4e6,stroke:#2b6cb0
+        API[REST API]
+        Routes[Flask Routes]
+        Models[SQLAlchemy Models]
     end
 
-    %% External Services
-    subgraph External[External Services]
-        JUM[Jumia Website]
-        KIL[Kilimall Website]
-        subgraph Heroku[Heroku Platform]
-            HD[(Heroku Postgres)]
-            DY[Dyno]
-        end
+    subgraph Data ["💾 Data Layer"]
+        style Data fill:#ffd3b6,stroke:#c53030
+        PostgreSQL[(PostgreSQL)]
     end
 
-    %% Connections
-    UI --> |HTTP Requests| API
-    JS --> |AJAX Calls| API
-    API --> BP
-    BP --> Models
-    Models --> DB
-    
-    RS --> JS_S
-    RS --> KM_S
-    JS_S --> JUM
-    KM_S --> KIL
-    
-    JS_S --> |Save Data| Models
-    KM_S --> |Save Data| Models
-    
-    SC --> RS
-    ENV --> CFG
-    CFG --> BP
+    subgraph Scrapers ["🕷️ Web Scrapers"]
+        style Scrapers fill:#b5c6e0,stroke:#4c51bf
+        Jumia[Jumia Scraper]
+        Kilimall[Kilimall Scraper]
+        Scheduler[APScheduler]
+    end
+
+    UI --> Routes
+    Charts --> Routes
+    Compare --> Routes
+    Routes --> Models
+    Models --> PostgreSQL
+    Scheduler --> Jumia
+    Scheduler --> Kilimall
+    Jumia --> Models
+    Kilimall --> Models
 ```
 
-## Component Description
+## System Components
 
-### Frontend
-- **Web UI**: Modern, responsive interface built with:
-  - HTML5 for structure
-  - Bootstrap 5 for layout and components
-  - Custom CSS for styling
-  - Font Awesome for icons
-- **Pages**:
-  - Home Page: Product listing with dynamic filters and platform statistics
-  - Compare Page: Side-by-side product comparison with price history charts
-  - Price History Page: Detailed price trends and analytics
-- **JavaScript**: 
-  - AJAX for asynchronous data loading
-  - Interactive charts using Plotly.js
-  - Dynamic UI updates and filtering
-- **CSS**:
-  - Custom styling for platform cards and components
-  - Responsive design breakpoints
-  - Animation and transition effects
+### Frontend Layer 🎨
+<div style="background: linear-gradient(135deg, #a8e6cf 0%, #dcedc1 100%); padding: 15px; border-radius: 8px; border-left: 5px solid #3d8168;">
 
-### Backend
-- **API Routes**: RESTful endpoints organized using Flask Blueprints:
-  - /api/v1/products: Product listing and filtering
-  - /api/v1/categories: Category management
-  - /api/v1/platforms: Platform information
-  - /api/v1/stats: Platform statistics
-- **Database Models**:
-  - Product: Core product information and relationships
-  - Category: Product categorization
-  - Platform: E-commerce platform details
-  - PriceHistory: Historical price data with timestamps
-- **Web Scrapers**:
-  - Platform-specific scrapers with error handling
-  - Scheduled execution using APScheduler
-  - Data validation and cleaning
+#### Core Components
+- **Templates** (`app/templates/`)
+  - `base.html`: Base template with common layout
+  - `index.html`: Homepage with product listings
+  - `compare.html`: Product comparison interface
+
+#### Static Assets
+- **JavaScript** (`app/static/js/`)
+  - Price history charts using Chart.js
+  - Dynamic product comparison
+  - AJAX data fetching
+- **CSS** (`app/static/css/`)
+  - Bootstrap 5 customization
+  - Responsive design
+</div>
+
+### Backend Layer ⚙️
+<div style="background: linear-gradient(135deg, #bcd4e6 0%, #d6e2e9 100%); padding: 15px; border-radius: 8px; border-left: 5px solid #2b6cb0;">
+
+#### API Routes (`app/routes.py`)
+```python
+GET  /api/v1/products     # List products with filters
+GET  /api/v1/products/:id # Get single product
+GET  /api/v1/categories   # List categories
+GET  /api/v1/platforms    # List platforms
+GET  /api/v1/stats        # Get price statistics
+```
+
+#### Models (`app/models/models.py`)
+- `Product`: Product information and price history
+- `Platform`: E-commerce platform details
+- `Category`: Product categorization
+</div>
+
+### Data Layer 💾
+<div style="background: linear-gradient(135deg, #ffd3b6 0%, #ffaaa5 100%); padding: 15px; border-radius: 8px; border-left: 5px solid #c53030;">
+
+#### Database Schema
+```sql
+Products
+  - id (PK)
+  - name
+  - url
+  - image_url
+  - current_price
+  - platform_id (FK)
+  - category_id (FK)
+  - price_history (JSON)
+  - created_at
+  - updated_at
+
+Platforms
+  - id (PK)
+  - name
+  - base_url
+
+Categories
+  - id (PK)
+  - name
+```
+</div>
+
+### Scraping System 🕷️
+<div style="background: linear-gradient(135deg, #b5c6e0 0%, #ebf4f5 100%); padding: 15px; border-radius: 8px; border-left: 5px solid #4c51bf;">
+
+#### Components
+- **Base Scraper** (`app/scrapers/base.py`)
+  - Common scraping functionality
   - Rate limiting and retry logic
+  
+- **Platform Scrapers**
+  - `jumia_scraper.py`: Jumia products
+  - `kilimall_scraper.py`: Kilimall products
+  
+- **Scheduler**
+  - Automated scraping every 6 hours
+  - Price history updates
+</div>
 
-### Infrastructure
+## Data Flow 🔄
+<div style="background: linear-gradient(135deg, #c9d6ff 0%, #e2e2e2 100%); padding: 15px; border-radius: 8px; border-left: 5px solid #434190;">
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant Database
+    participant Scrapers
+
+    User->>Frontend: Browse Products
+    Frontend->>Backend: GET /api/v1/products
+    Backend->>Database: Query Products
+    Database-->>Backend: Product Data
+    Backend-->>Frontend: JSON Response
+    Frontend-->>User: Display Products
+
+    rect rgb(240, 240, 240)
+        Note over Scrapers: Every 6 hours
+        Scrapers->>Database: Update Prices
+    end
+```
+</div>
+
+## Project Structure 📁
+<div style="background: linear-gradient(135deg, #e2cfc4 0%, #f7d794 100%); padding: 15px; border-radius: 8px; border-left: 5px solid #975a16;">
+
+```
+wpp-price_tracker/
+├── app/
+│   ├── models/
+│   │   └── models.py          # Database models
+│   ├── scrapers/
+│   │   ├── base.py           # Base scraper class
+│   │   ├── jumia_scraper.py  # Jumia implementation
+│   │   ├── kilimall_scraper.py # Kilimall implementation
+│   │   └── run_scrapers.py   # Scraper orchestration
+│   ├── static/
+│   │   ├── css/             # Stylesheets
+│   │   └── js/              # Frontend scripts
+│   ├── templates/           # HTML templates
+│   ├── __init__.py         # App initialization
+│   └── routes.py           # API endpoints
+├── doc/
+│   └── architecture.md     # This document
+├── migrations/            # Database migrations
+├── .env                  # Environment variables
+├── config.py             # App configuration
+├── Procfile             # Heroku deployment
+├── requirements.txt     # Python dependencies
+└── run.py              # App entry point
+```
+</div>
+
+## Development & Deployment 🚀
+<div style="background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%); padding: 15px; border-radius: 8px; border-left: 5px solid #2f855a;">
+
+### Tools & Services
+- **Version Control**: Git
+- **Database**: PostgreSQL on Heroku
 - **Hosting**: Heroku Platform
-  - Web: Gunicorn WSGI server
-  - Database: Heroku Postgres
-  - Environment: Python 3.9 runtime
-- **Dependencies**:
-  - Flask 2.3.3 for web framework
-  - SQLAlchemy 1.4 for ORM
-  - Requests for HTTP client
-  - BeautifulSoup4 for HTML parsing
-  - Selenium for dynamic content scraping
+- **Monitoring**: Heroku Logs
 
-## Data Flow
-1. **Data Collection**:
-   - Scrapers run on scheduled intervals
-   - Extract product data from e-commerce platforms
-   - Clean and validate data
-   - Store in PostgreSQL database
+### Environment Setup
+```bash
+# Installation
+pip install -r requirements.txt
 
-2. **API Layer**:
-   - RESTful endpoints handle client requests
-   - Data filtering and pagination
-   - JSON response formatting
-   - Error handling and logging
+# Database Setup
+python run.py init
 
-3. **Frontend Interaction**:
-   - Dynamic page loading
-   - Real-time price updates
-   - Interactive charts and filters
-   - Responsive UI updates
+# Run Development Server
+python run.py run
 
-## Security Features
-- CORS protection
-- SQL injection prevention through SQLAlchemy
-- Environment variable configuration
-- Rate limiting on API endpoints
-- Secure database connection strings
+# Run Scrapers
+python run.py scrape
+```
+</div>
 
-## Monitoring and Logging
-- Heroku application logs
-- Custom error tracking
-- Database query monitoring
-- Scraper performance metrics
+## Security Measures 🔒
+<div style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); padding: 15px; border-radius: 8px; border-left: 5px solid #9b2c2c;">
 
-## Future Enhancements
-- Additional e-commerce platforms
-- Price alert notifications
-- User accounts and favorites
-- Mobile application
-- Advanced analytics and predictions
-- Caching layer for improved performance
+### Implemented Features
+- SQL Injection Protection (SQLAlchemy)
+- Input Validation
+- Error Handling
+- CORS Configuration
+
+### Best Practices
+- Environment Variable Usage
+- Secure Database Connections
+- Rate Limiting for Scrapers
+</div>
