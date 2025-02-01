@@ -1,5 +1,9 @@
 # Price Tracker Application Architecture
 
+## System Overview
+
+The Price Tracker is a web application that monitors and compares product prices across major e-commerce platforms in Kenya. Built with Flask and modern web technologies, it provides real-time price tracking and historical price analysis.
+
 ```mermaid
 graph TB
     %% Frontend Components
@@ -11,6 +15,7 @@ graph TB
             PH[Price History Page]
         end
         JS[JavaScript - main.js]
+        CSS[CSS - style.css]
     end
 
     %% Backend Components
@@ -23,12 +28,19 @@ graph TB
             PM[Product Model]
             CM[Category Model]
             PLM[Platform Model]
+            PH_M[PriceHistory Model]
         end
         
         subgraph Scrapers[Web Scrapers]
             JS_S[Jumia Scraper]
             KM_S[Kilimall Scraper]
             RS[run_scrapers.py]
+            SC[Scheduler]
+        end
+
+        subgraph Config[Configuration]
+            ENV[Environment Variables]
+            CFG[Config Classes]
         end
     end
 
@@ -36,6 +48,10 @@ graph TB
     subgraph External[External Services]
         JUM[Jumia Website]
         KIL[Kilimall Website]
+        subgraph Heroku[Heroku Platform]
+            HD[(Heroku Postgres)]
+            DY[Dyno]
+        end
     end
 
     %% Connections
@@ -52,44 +68,98 @@ graph TB
     
     JS_S --> |Save Data| Models
     KM_S --> |Save Data| Models
+    
+    SC --> RS
+    ENV --> CFG
+    CFG --> BP
 ```
 
 ## Component Description
 
 ### Frontend
-- **Web UI**: Browser-based interface built with HTML, CSS (Bootstrap), and JavaScript
+- **Web UI**: Modern, responsive interface built with:
+  - HTML5 for structure
+  - Bootstrap 5 for layout and components
+  - Custom CSS for styling
+  - Font Awesome for icons
 - **Pages**:
-  - Home Page: Product listing with filters
-  - Compare Page: Side-by-side product comparison
-  - Price History Page: Historical price trends
-- **JavaScript**: Handles dynamic UI updates and API calls
+  - Home Page: Product listing with dynamic filters and platform statistics
+  - Compare Page: Side-by-side product comparison with price history charts
+  - Price History Page: Detailed price trends and analytics
+- **JavaScript**: 
+  - AJAX for asynchronous data loading
+  - Interactive charts using Plotly.js
+  - Dynamic UI updates and filtering
+- **CSS**:
+  - Custom styling for platform cards and components
+  - Responsive design breakpoints
+  - Animation and transition effects
 
 ### Backend
-- **API Routes**: RESTful endpoints for product data
-- **Blueprint**: Flask Blueprint for route organization
+- **API Routes**: RESTful endpoints organized using Flask Blueprints:
+  - /api/v1/products: Product listing and filtering
+  - /api/v1/categories: Category management
+  - /api/v1/platforms: Platform information
+  - /api/v1/stats: Platform statistics
 - **Database Models**:
-  - Product: Stores product details and price history
-  - Category: Product categories (e.g., Mobile Phones, Televisions)
-  - Platform: E-commerce platforms (Jumia, Kilimall)
+  - Product: Core product information and relationships
+  - Category: Product categorization
+  - Platform: E-commerce platform details
+  - PriceHistory: Historical price data with timestamps
 - **Web Scrapers**:
-  - Jumia Scraper: Scrapes product data from Jumia
-  - Kilimall Scraper: Scrapes product data from Kilimall
-  - run_scrapers.py: Orchestrates scraping operations
+  - Platform-specific scrapers with error handling
+  - Scheduled execution using APScheduler
+  - Data validation and cleaning
+  - Rate limiting and retry logic
 
-### External Services
-- **E-commerce Websites**:
-  - Jumia: Source for product data
-  - Kilimall: Source for product data
+### Infrastructure
+- **Hosting**: Heroku Platform
+  - Web: Gunicorn WSGI server
+  - Database: Heroku Postgres
+  - Environment: Python 3.9 runtime
+- **Dependencies**:
+  - Flask 2.3.3 for web framework
+  - SQLAlchemy 1.4 for ORM
+  - Requests for HTTP client
+  - BeautifulSoup4 for HTML parsing
+  - Selenium for dynamic content scraping
 
 ## Data Flow
-1. Scrapers periodically fetch product data from e-commerce websites
-2. Data is processed and stored in SQLite database
-3. Frontend makes API calls to retrieve data
-4. UI components render data and handle user interactions
+1. **Data Collection**:
+   - Scrapers run on scheduled intervals
+   - Extract product data from e-commerce platforms
+   - Clean and validate data
+   - Store in PostgreSQL database
 
-## Key Features
-- Real-time product price tracking
-- Historical price analysis
-- Product comparison
-- Category-based filtering
-- Multi-platform support
+2. **API Layer**:
+   - RESTful endpoints handle client requests
+   - Data filtering and pagination
+   - JSON response formatting
+   - Error handling and logging
+
+3. **Frontend Interaction**:
+   - Dynamic page loading
+   - Real-time price updates
+   - Interactive charts and filters
+   - Responsive UI updates
+
+## Security Features
+- CORS protection
+- SQL injection prevention through SQLAlchemy
+- Environment variable configuration
+- Rate limiting on API endpoints
+- Secure database connection strings
+
+## Monitoring and Logging
+- Heroku application logs
+- Custom error tracking
+- Database query monitoring
+- Scraper performance metrics
+
+## Future Enhancements
+- Additional e-commerce platforms
+- Price alert notifications
+- User accounts and favorites
+- Mobile application
+- Advanced analytics and predictions
+- Caching layer for improved performance
