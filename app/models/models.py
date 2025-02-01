@@ -38,14 +38,14 @@ class Category(db.Model):
 class Product(db.Model):
     __tablename__ = 'products'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False)  # Increased to 200
+    name = db.Column(db.String(200), nullable=False)
     url = db.Column(db.String(500), unique=True, nullable=False)
     image_url = db.Column(db.String(500))
     description = db.Column(db.Text)
     current_price = db.Column(db.Float, nullable=False)
     currency = db.Column(db.String(3), default='KES')
     last_price_update = db.Column(db.DateTime, default=datetime.utcnow)
-    price_history = db.Column(db.JSON, default=list)  # Store price history as JSON array
+    price_history = db.Column(db.JSON, default=list)
     platform_id = db.Column(db.Integer, db.ForeignKey('platforms.id'), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

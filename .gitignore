@@ -30,11 +30,8 @@ wheels/
 # Environment variables
 .env
 
-# IDE specific files
-.idea/
-.vscode/
-*.swp
-*.swo
+# js
+node_modules/
 
 # Database
 *.db

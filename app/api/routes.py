@@ -1,19 +1,33 @@
-from flask import jsonify, request
+from flask import jsonify, request, abort
 from app.api import bp
 from app.models.models import Product, Platform, Category
 from app import db
-import pandas as pd
-import plotly.express as px
-import json
 from datetime import datetime, timedelta
+from sqlalchemy import func, case
+from sqlalchemy.orm import joinedload
 
 @bp.route('/products')
 def get_products():
     """Get paginated list of products"""
     page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 10, type=int)
-    products = Product.query.paginate(page=page, per_page=per_page, error_out=False)
-
+    per_page = request.args.get('per_page', 12, type=int)
+    query = Product.query.order_by(Product.updated_at.desc())
+    
+    # Apply filters
+    search = request.args.get('search')
+    if search:
+        query = query.filter(Product.name.ilike(f'%{search}%'))
+        
+    category_id = request.args.get('category_id')
+    if category_id:
+        query = query.filter_by(category_id=category_id)
+        
+    platform_id = request.args.get('platform_id')
+    if platform_id:
+        query = query.filter_by(platform_id=platform_id)
+    
+    pagination = query.paginate(page=page, per_page=per_page)
+    
     return jsonify({
         'items': [{
             'id': p.id,
@@ -21,94 +35,42 @@ def get_products():
             'url': p.url,
             'image_url': p.image_url,
             'platform': p.platform.name,
-            'category': p.category.name,
-            'current_price': p.formatted_price
-        } for p in products.items],
-        'total': products.total,
-        'pages': products.pages,
-        'current_page': products.page
+            'current_price': p.current_price,
+            'currency': p.currency,
+            'last_update': p.last_price_update.isoformat() if p.last_price_update else None
+        } for p in pagination.items],
+        'page': pagination.page,
+        'total_pages': pagination.pages,
+        'has_next': pagination.has_next
     })
 
 @bp.route('/products/<int:id>')
 def get_product(id):
     """Get product details by ID"""
-    product = Product.query.get_or_404(id)
+    product = Product.query.options(joinedload(Product.platform)).get(id)
+    
+    if not product:
+        abort(404, description="Product not found")
+
     return jsonify({
         'id': product.id,
         'name': product.name,
         'url': product.url,
         'image_url': product.image_url,
-        'description': product.description,
         'platform': product.platform.name,
-        'category': product.category.name,
-        'current_price': product.formatted_price,
-        'price_history': product.price_history
+        'current_price': product.current_price,
+        'currency': product.currency,
+        'price_history': product.price_history or [],
+        'last_update': product.last_price_update.isoformat() if product.last_price_update else None
     })
-
-@bp.route('/products/search')
-def search_products():
-    """Search for products by name, category, and platform"""
-    query = request.args.get('q', '')
-    category = request.args.get('category')
-    platform = request.args.get('platform')
-    
-    products_query = Product.query
-    
-    if query:
-        products_query = products_query.filter(Product.name.ilike(f'%{query}%'))
-    if category:
-        products_query = products_query.join(Category).filter(Category.name == category)
-    if platform:
-        products_query = products_query.join(Platform).filter(Platform.name == platform)
-    
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 10, type=int)
-    
-    products = products_query.paginate(page=page, per_page=per_page, error_out=False)
-    
-    return jsonify({
-        'items': [{
-            'id': p.id,
-            'name': p.name,
-            'url': p.url,
-            'image_url': p.image_url,
-            'platform': p.platform.name,
-            'category': p.category.name,
-            'current_price': p.formatted_price
-        } for p in products.items],
-        'total': products.total,
-        'pages': products.pages,
-        'current_page': products.page
-    })
-
-@bp.route('/products/<int:id>/prices')
-def get_price_history(id):
-    """Get price history for a product"""
-    product = Product.query.get_or_404(id)
-    return jsonify(product.price_history)
-
-@bp.route('/products/<int:id>/visualization')
-def price_visualization(id):
-    """Visualize price history of a product using Plotly"""
-    product = Product.query.get_or_404(id)
-    
-    if not product.price_history:
-        return jsonify({'error': 'No price history available'})
-    
-    df = pd.DataFrame(product.price_history)
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
-    
-    fig = px.line(df, x='timestamp', y='price', title=f'Price History for {product.name}')
-    return json.dumps(fig.to_dict())
 
 @bp.route('/categories')
 def get_categories():
-    """Get all product categories"""
+    """Get all categories"""
     categories = Category.query.all()
     return jsonify([{
         'id': c.id,
-        'name': c.name,
-        'product_count': len(c.products)
+        'name': c.name
     } for c in categories])
 
 @bp.route('/platforms')
@@ -117,45 +79,35 @@ def get_platforms():
     platforms = Platform.query.all()
     return jsonify([{
         'id': p.id,
-        'name': p.name,
-        'url': p.url,
-        'product_count': len(p.products)
+        'name': p.name
     } for p in platforms])
 
 @bp.route('/stats')
 def get_stats():
-    """Get statistics on products, platforms, and price changes"""
-    platforms = Platform.query.all()
-    platform_stats = {}
-    
-    for platform in platforms:
-        products = platform.products
-        platform_stats[platform.name.lower()] = {
-            'total_products': len(products),
-            'name': platform.name,
-            'url': platform.url
-        }
+    """Get platform stats and price changes"""
+    # Get platform-specific stats
+    platform_stats = db.session.query(
+        Platform.name,
+        func.count(Product.id).label('total_products'),
+        func.count(Product.price_history).label('total_prices')
+    ).join(Product).group_by(Platform.name).all()
     
     # Calculate price changes in the last 24 hours
     yesterday = datetime.utcnow() - timedelta(days=1)
-    products = Product.query.filter(Product.last_price_update >= yesterday).all()
-    
-    price_changes = {'increases': 0, 'decreases': 0}
-    for product in products:
-        if product.price_history and len(product.price_history) > 1:
-            current_price = product.current_price
-            previous_price = product.price_history[-2]['price']
-            
-            if current_price > previous_price:
-                price_changes['increases'] += 1
-            elif current_price < previous_price:
-                price_changes['decreases'] += 1
-    
-    return jsonify({
+    price_changes = db.session.query(
+        func.sum(case((Product.current_price < Product.price_history[-1]['price'], 1), else_=0)).label('drops'),
+        func.sum(case((Product.current_price > Product.price_history[-1]['price'], 1), else_=0)).label('increases')
+    ).filter(Product.last_price_update >= yesterday).first()
+
+    stats = {
         'total_products': Product.query.count(),
-        'platforms': len(platforms),
-        'categories': Category.query.count(),
-        'platform_stats': platform_stats,
-        'price_increases': price_changes['increases'],
-        'price_decreases': price_changes['decreases']
-    })
+        'price_drops': price_changes.drops if price_changes.drops else 0,
+        'price_increases': price_changes.increases if price_changes.increases else 0
+    }
+
+    # Add platform-specific stats
+    for platform in platform_stats:
+        stats[f'{platform.name.lower()}_products'] = platform.total_products
+        stats[f'{platform.name.lower()}_prices'] = platform.total_prices
+
+    return jsonify(stats)

@@ -23,26 +23,10 @@ def init_db():
             # Create all tables
             db.create_all()
 
-            # Initialize platforms if they don't exist
-            platforms = [
-                {'name': 'Jumia', 'url': 'https://www.jumia.co.ke'},
-                {'name': 'Kilimall', 'url': 'https://www.kilimall.co.ke'}
-            ]
-            for p in platforms:
-                if not Platform.query.filter_by(name=p['name']).first():
-                    platform = Platform(name=p['name'], url=p['url'])
-                    db.session.add(platform)
-                    logger.info(f"Created platform: {p['name']}")
-
-            # Initialize categories if they don't exist
-            categories = ['Mobile Phones', 'Televisions']
-            for c in categories:
-                if not Category.query.filter_by(name=c).first():
-                    category = Category(name=c)
-                    db.session.add(category)
-                    logger.info(f"Created category: {c}")
-
-            db.session.commit()
+            # Initialize platforms and categories
+            Platform.insert_default_platforms()
+            Category.insert_default_categories()
+            
             logger.info("Database initialized successfully")
 
         except Exception as e:
@@ -50,12 +34,7 @@ def init_db():
             db.session.rollback()
             raise
 
-def run_scrapers():
-    """Run all scrapers with proper app context."""
-    with app.app_context():
-        run_all_scrapers()
-
 if __name__ == '__main__':
     init_db()  # Initialize database before running the app
-    run_scrapers()  # Run scrapers once
+    run_all_scrapers()  # Run scrapers once
     app.run(debug=True)  # Start the Flask app

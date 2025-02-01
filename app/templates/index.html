@@ -2,138 +2,6 @@
 
 {% block title %}Home{% endblock %}
 
-{% block head %}
-<style>
-    .product-card {
-        transition: transform 0.3s, box-shadow 0.3s;
-        height: 100%;
-    }
-    .product-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-    .price {
-        font-size: 1.4em;
-        color: #28a745;
-        font-weight: bold;
-    }
-    .price-change {
-        font-size: 0.9em;
-        margin-left: 8px;
-    }
-    .price-up { color: #dc3545; }
-    .price-down { color: #28a745; }
-    #priceChart, #compareChart {
-        height: 400px;
-        background: white;
-        border-radius: 8px;
-        padding: 15px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    .stats-card {
-        background: linear-gradient(135deg, #6B73FF 0%, #000DFF 100%);
-        color: white;
-        border: none;
-    }
-    .platform-badge {
-        padding: 2px 2px;
-        border-radius: 2px;
-        font-size: 0.65em;
-        font-weight: 500;
-    }
-    .platform-jumia {
-        background-color: #f90;
-        color: white;
-    }
-    .platform-kilimall {
-        background-color: #e41e31;
-        color: white;
-    }
-    .search-section {
-        background: linear-gradient(135deg, #f6f9fc 0%, #f1f4f8 100%);
-        padding: 2rem 0;
-        margin-bottom: 2rem;
-        border-radius: 8px;
-    }
-    .platforms-banner {
-        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-        padding: 2rem 0;
-        margin-bottom: 2rem;
-        color: white;
-    }
-    .platform-card {
-        text-align: center;
-        padding: 1.5rem;
-        border-radius: 10px;
-        transition: transform 0.3s, box-shadow 0.3s;
-        margin-bottom: 1rem;
-        position: relative;
-        overflow: hidden;
-        max-width: 300px;
-        margin: 0 auto;
-    }
-    .platform-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-    }
-    .platform-card.jumia {
-        background: linear-gradient(135deg, #ff9900 0%, #ff7700 100%);
-    }
-    .platform-card.kilimall {
-        background: linear-gradient(135deg, #e41e31 0%, #c41829 100%);
-    }
-    .platform-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
-        pointer-events: none;
-    }
-    .platform-logo {
-        height: 40px;
-        margin-bottom: 1rem;
-        filter: brightness(0) invert(1);
-    }
-    .platform-stats {
-        font-size: 0.9rem;
-        opacity: 0.9;
-    }
-    .stat-number {
-        font-size: 2rem;
-        font-weight: bold;
-        margin-bottom: 0.25rem;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-    .platform-prices {
-        font-size: 0.85rem;
-        opacity: 0.8;
-        margin-top: 0.5rem;
-    }
-    .search-box {
-        position: relative;
-        margin-bottom: 2rem;
-    }
-    .search-box .btn-search {
-        position: absolute;
-        right: 0;
-        top: 0;
-        height: 100%;
-        border-radius: 0 4px 4px 0;
-    }
-    .product-actions {
-        display: flex;
-        justify-content: space-between;
-        gap: 10px;
-    }
-    .product-actions .btn {
-        flex: 1;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
 <!-- Search Section -->
 <div class="container mb-4">
@@ -157,7 +25,7 @@
         <div class="row justify-content-center">
             <div class="col-md-5">
                 <div class="platform-card jumia">
-                    <img src="https://www.jumia.co.ke/assets/logos/jumia-white.png" alt="Jumia" class="platform-logo">
+                    <img src="{{ url_for('static', filename='media/jumia-logo.png') }}" alt="Jumia" class="platform-logo">
                     <div class="platform-stats">
                         <div class="stat-number" id="jumiaProducts">-</div>
                         <div>Products Tracked</div>
@@ -167,7 +35,7 @@
             </div>
             <div class="col-md-5">
                 <div class="platform-card kilimall">
-                    <img src="https://www.kilimall.co.ke/new_static/images/logo-white.png" alt="Kilimall" class="platform-logo">
+                    <img src="{{ url_for('static', filename='media/kilimall-logo.png') }}" alt="Kilimall" class="platform-logo">
                     <div class="platform-stats">
                         <div class="stat-number" id="kilimallProducts">-</div>
                         <div>Products Tracked</div>
@@ -217,6 +85,20 @@
         </div>
     </div>
 
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <select id="categoryFilter" class="form-select">
+                <option value="">All Categories</option>
+            </select>
+        </div>
+        <div class="col-md-6">
+            <select id="platformFilter" class="form-select">
+                <option value="">All Platforms</option>
+            </select>
+        </div>
+    </div>
+
     <!-- Products List and Price History -->
     <div class="row">
         <div class="col-md-8">
@@ -229,178 +111,11 @@
             <div class="card sticky-top" style="top: 20px">
                 <div class="card-body">
                     <h5 class="card-title mb-3">Price History</h5>
-                    <div id="priceChart"></div>
+                    <canvas id="priceChart"></canvas>
                     <div id="productDetails" class="mt-3"></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-function formatPrice(price) {
-    return new Intl.NumberFormat('en-KE', {
-        style: 'currency',
-        currency: 'KES'
-    }).format(price);
-}
-
-function getPlatformBadgeClass(platform) {
-    return platform.toLowerCase() === 'jumia' ? 'platform-jumia' : 'platform-kilimall';
-}
-
-async function loadStats() {
-    try {
-        const response = await fetch('/api/v1/stats');
-        const data = await response.json();
-        
-        document.getElementById('totalProducts').textContent = data.total_products;
-        document.getElementById('priceDrops').textContent = data.price_drops || '0';
-        document.getElementById('priceIncreases').textContent = data.price_increases || '0';
-        
-        // Update platform stats
-        document.getElementById('jumiaProducts').textContent = data.jumia_products || '0';
-        document.getElementById('jumiaPrices').textContent = `${data.jumia_prices || '0'} prices tracked`;
-        document.getElementById('kilimallProducts').textContent = data.kilimall_products || '0';
-        document.getElementById('kilimallPrices').textContent = `${data.kilimall_prices || '0'} prices tracked`;
-    } catch (error) {
-        console.error('Error loading stats:', error);
-    }
-}
-
-async function searchProducts() {
-    const searchQuery = document.getElementById('searchQuery').value.trim();
-    if (searchQuery) {
-        await loadProducts(1, false, searchQuery);
-    }
-}
-
-async function loadProducts(page = 1, append = false, search = '') {
-    try {
-        const params = new URLSearchParams({
-            page: page,
-            ...(search && { search: search })
-        });
-
-        const response = await fetch(`/api/v1/products?${params}`);
-        const data = await response.json();
-        
-        const container = document.getElementById('productsList');
-        if (!append) {
-            container.innerHTML = '';
-        }
-        
-        data.items.forEach(product => {
-            const col = document.createElement('div');
-            col.className = 'col-md-6 col-lg-4';
-            col.innerHTML = `
-                <div class="card product-card">
-                    <img src="${product.image_url}" class="card-img-top" alt="${product.name}" onerror="this.src='/static/img/placeholder.png'">
-                    <div class="card-body">
-                        <h5 class="card-title">${product.name}</h5>
-                        <p class="card-text price">${formatPrice(product.current_price)}</p>
-                        <span class="badge ${getPlatformBadgeClass(product.platform)}">${product.platform}</span>
-                        <div class="product-actions mt-3">
-                            <button class="btn btn-primary" onclick="loadPriceHistory(${product.id})">
-                                <i class="fas fa-chart-line"></i> Price History
-                            </button>
-                            <button class="btn btn-outline-primary" onclick="addToCompare(${product.id})">
-                                <i class="fas fa-balance-scale"></i> Compare
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            container.appendChild(col);
-        });
-        
-        document.getElementById('loadMore').style.display = data.has_next ? 'block' : 'none';
-    } catch (error) {
-        console.error('Error loading products:', error);
-    }
-}
-
-async function loadPriceHistory(productId) {
-    try {
-        const response = await fetch(`/api/v1/products/${productId}`);
-        const product = await response.json();
-        
-        const chartData = {
-            labels: product.price_history.map(ph => new Date(ph.timestamp)),
-            datasets: [{
-                label: 'Price History',
-                data: product.price_history.map(ph => ph.price),
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0.1
-            }]
-        };
-        
-        if (window.priceHistoryChart) {
-            window.priceHistoryChart.destroy();
-        }
-        
-        const ctx = document.getElementById('priceChart').getContext('2d');
-        window.priceHistoryChart = new Chart(ctx, {
-            type: 'line',
-            data: chartData,
-            options: {
-                responsive: true,
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: {
-                            unit: 'day'
-                        }
-                    }
-                }
-            }
-        });
-        
-        // Update product details
-        document.getElementById('productDetails').innerHTML = `
-            <h6>${product.name}</h6>
-            <p class="mb-1">Current Price: ${formatPrice(product.current_price)}</p>
-            <p class="mb-1">Platform: ${product.platform}</p>
-            <a href="${product.url}" target="_blank" class="btn btn-sm btn-outline-primary">View on ${product.platform}</a>
-        `;
-    } catch (error) {
-        console.error('Error loading price history:', error);
-    }
-}
-
-// Compare functionality
-let compareList = [];
-
-function addToCompare(productId) {
-    if (!compareList.includes(productId)) {
-        compareList.push(productId);
-        if (compareList.length === 2) {
-            window.location.href = `/compare?products=${compareList.join(',')}`;
-        } else {
-            alert('Select one more product to compare');
-        }
-    }
-}
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    loadStats();
-    loadProducts();
-    
-    // Search on Enter key
-    document.getElementById('searchQuery').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            searchProducts();
-        }
-    });
-    
-    // Load more products
-    document.getElementById('loadMore').addEventListener('click', () => {
-        const currentPage = Math.ceil(document.querySelectorAll('.product-card').length / 12);
-        loadProducts(currentPage + 1, true);
-    });
-});
-</script>
 {% endblock %}

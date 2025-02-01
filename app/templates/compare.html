@@ -16,7 +16,7 @@
                                 <select class="form-select mb-3" id="product1">
                                     <option value="">Select a product...</option>
                                 </select>
-                                <div id="product1Details" class="product-details"></div>
+                                <div id="product1Details" class="product-details"> <boltAction type="file" filePath="app/templates/compare.html">                </div>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -31,22 +31,11 @@
                     </div>
                 </div>
 
-                <div id="comparisonChart" class="mt-4">
-                    <!-- Price history comparison chart will be rendered here -->
+                <div class="mt-4">
+                    <canvas id="comparisonChart"></canvas>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        loadProductsForComparison();
-        
-        document.getElementById('product1').addEventListener('change', updateComparison);
-        document.getElementById('product2').addEventListener('change', updateComparison);
-    });
-</script>
 {% endblock %}

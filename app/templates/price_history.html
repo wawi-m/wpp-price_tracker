@@ -14,9 +14,7 @@
                     </select>
                 </div>
 
-                <div id="priceHistoryChart">
-                    <!-- Price history chart will be rendered here -->
-                </div>
+                <canvas id="priceHistoryChart"></canvas>
 
                 <div class="price-stats mt-4">
                     <div class="row">
@@ -58,13 +56,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        loadProductsForHistory();
-        document.getElementById('productSelect').addEventListener('change', updatePriceHistory);
-    });
-</script>
 {% endblock %}

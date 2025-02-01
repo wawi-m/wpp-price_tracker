@@ -1,105 +1,140 @@
-/* General Styles */
-body {
-    background-color: #f8f9fa;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
-main {
-    flex: 1;
-}
-
-/* Navbar */
-.navbar-brand i {
+/* Platform badges */
+.platform-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
     margin-right: 8px;
 }
 
-/* Cards */
-.card {
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    border: none;
-    margin-bottom: 20px;
+.platform-badge img {
+    height: 16px;
+    margin-right: 4px;
 }
 
-.card-title {
-    color: #333;
-    margin-bottom: 20px;
+.jumia-badge {
+    background-color: #f90;
+    color: white;
 }
 
-/* Product Cards */
+.kilimall-badge {
+    background-color: #e41e31;
+    color: white;
+}
+
+/* Card styling */
 .product-card {
-    transition: transform 0.2s;
+    height: 100%;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .product-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
-.product-card img {
+.card-img-wrapper {
     height: 200px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+}
+
+.card-img-wrapper img {
+    max-height: 100%;
     object-fit: contain;
-    padding: 10px;
 }
 
-.product-card .price {
-    font-size: 1.2em;
-    font-weight: bold;
+/* Price styling */
+.price {
+    font-size: 1.4em;
     color: #28a745;
+    font-weight: bold;
 }
 
-.product-card .platform {
-    color: #6c757d;
-    font-size: 0.9em;
+/* Platform logos in cards */
+.platform-logo-small {
+    height: 20px;
+    width: auto;
+    margin-right: 4px;
 }
 
-/* Comparison Page */
-.product-select {
-    background-color: #fff;
-    padding: 20px;
+/* Stats cards */
+.stats-card {
+    background: linear-gradient(135deg, #6B73FF 0%, #000DFF 100%);
+    color: white;
+    border: none;
+    transition: transform 0.2s;
+}
+
+.stats-card:hover {
+    transform: translateY(-3px);
+}
+
+/* Loading state */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Error states */
+.error-message {
+    color: #dc3545;
+    padding: 1rem;
+    text-align: center;
+    background-color: #f8d7da;
+    border-radius: 4px;
+    margin: 1rem 0;
+}
+
+/* Platform cards */
+.platform-card {
+    background: white;
     border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+    transition: transform 0.2s;
 }
 
-.product-details {
-    margin-top: 20px;
+.platform-card:hover {
+    transform: translateY(-3px);
 }
 
-/* Price History Page */
-.price-stats .card {
+.platform-logo {
+    height: 40px;
+    margin-bottom: 1rem;
+}
+
+.platform-stats {
     text-align: center;
 }
 
-.price-stats .card-text {
-    font-size: 1.5em;
+.stat-number {
+    font-size: 2rem;
     font-weight: bold;
-    color: #007bff;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
 }
 
-/* Charts */
-#priceHistoryChart,
-#comparisonChart {
-    height: 400px;
-    background-color: #fff;
-    padding: 20px;
+.platform-prices {
+    color: #718096;
+    font-size: 0.9rem;
+}
+
+/* Search box */
+.search-box {
+    margin: 2rem 0;
+    padding: 1rem;
+    background: white;
     border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-/* Search Container */
-.search-container {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-
-/* Load More Button */
-#loadMore {
-    margin: 20px 0;
-}
-
-/* Footer */
-.footer {
-    margin-top: auto;
-    background-color: #f8f9fa;
-    padding: 20px 0;
+.btn-search {
+    min-width: 120px;
 }

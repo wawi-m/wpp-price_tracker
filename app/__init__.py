@@ -30,7 +30,14 @@ def create_app(database_url=None):
     db.init_app(app)
     migrate.init_app(app, db)
 
-    # Create database tables if not already created (used during app initialization)
+    # Register blueprints
+    from app.routes import bp as main_bp
+    app.register_blueprint(main_bp)
+
+    from app.api import bp as api_bp
+    app.register_blueprint(api_bp)
+
+    # Create database tables if not already created
     with app.app_context():
         try:
             db.create_all()
@@ -38,13 +45,4 @@ def create_app(database_url=None):
             app.logger.error(f"Error creating database tables: {e}")
             raise
 
-    # Import and register routes
-    from app.routes import bp as main_bp
-    app.register_blueprint(main_bp)
-
     return app
-
-# Ensures that app runs only when executed directly
-if __name__ == '__main__':
-    app = create_app()  # Create the app with the database URL
-    app.run(debug=True)  # Start the app in debug mode
