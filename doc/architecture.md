@@ -9,34 +9,52 @@ graph TB
     subgraph Frontend ["🖥️ Frontend (HTML/CSS/JS)"]
         style Frontend fill:#a8e6cf,stroke:#3d8168
         UI[User Interface]
-        Charts[Price History Charts]
-        Compare[Compare Products]
+        subgraph Pages[Pages]
+            HP[Home Page]
+            CP[Compare Products]
+            PH[Price History Charts]
+        end
+        JS[JavaScript - main.js]
     end
 
     subgraph Backend ["⚙️ Backend (Flask)"]
-        style Backend fill:#bcd4e6,stroke:#2b6cb0
+        subgraph App["🖥️ App"]
+        style App fill:#bcd4e6,stroke:#2b6cb0
         API[REST API]
-        Routes[Flask Routes]
-        Models[SQLAlchemy Models]
+        BP[Blueprint - main]
+        DB[(PostgreSQL)]
+        end     
+
+        subgraph Scrapers ["🕷️ Web Scrapers"]
+            style Scrapers fill:#b5c6e0,stroke:#4c51bf
+            Jumia[Jumia Scraper]
+            Kilimall[Kilimall Scraper]
+            RunScrapers[run_scrapers.py]
+            Scheduler[APScheduler]
+        end
     end
 
     subgraph Data ["💾 Data Layer"]
         style Data fill:#ffd3b6,stroke:#c53030
-        PostgreSQL[(PostgreSQL)]
+        PM[Product Model]
+        CM[Category Model]
+        PLM[Platform Model]
     end
 
-    subgraph Scrapers ["🕷️ Web Scrapers"]
-        style Scrapers fill:#b5c6e0,stroke:#4c51bf
-        Jumia[Jumia Scraper]
-        Kilimall[Kilimall Scraper]
-        Scheduler[APScheduler]
+    subgraph ExternalServices ["🌐 External Services"]
+        style ExternalServices fill:#ff9a9e,stroke:#9b2c2c
+        Jumia[Jumia Website]
+        Kilimall[Kilimall Website]
+        Heroku[Heroku Platform]
     end
 
-    UI --> Routes
-    Charts --> Routes
-    Compare --> Routes
-    Routes --> Models
-    Models --> PostgreSQL
+
+    Pages --> UI
+    UI --> |HTTP Requests| API
+    JS --> |AJAX calls| API
+    API --> BP
+    BP --> Models
+    Models --> DB
     Scheduler --> Jumia
     Scheduler --> Kilimall
     Jumia --> Models
