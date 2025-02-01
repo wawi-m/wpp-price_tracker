@@ -6,29 +6,32 @@
 
 ```mermaid
 graph TB
-    subgraph Frontend ["🖥️ Frontend (HTML/CSS/JS)"]
-        style Frontend fill:#9ACD32,stroke:#3d8168
+    %% Define graph direction and spacing
+    graph[rankdir=TB, nodesep=50, ranksep=80]
+
+    subgraph Frontend ["Frontend Layer"]
+        style Frontend fill:#E0E0E0,stroke:#424242
         UI[User Interface]
         JS[JavaScript - main.js]
         subgraph Pages[Pages]
-          style Pages fill:#dcedc1,stroke:#8a9aa9
+          style Pages fill:#F5F5F5,stroke:#9E9E9E
           HP[Home Page]
           CP[Compare Products]
           PH[Price History Charts]
         end
     end
 
-    subgraph Backend ["⚙️ Backend (Flask)"]
-        style Backend fill:#a1b28d,stroke:#3d8168
-        subgraph App["🖥️ App"]
-        style App fill:#bcd4e6,stroke:#2b6cb0
+    subgraph Backend ["Backend Layer"]
+        style Backend fill:#BDBDBD,stroke:#424242
+        subgraph App["App"]
+        style App fill:#E0E0E0,stroke:#616161
         API[REST API]
         BP[Blueprint - main]
         DB[(PostgreSQL)]
         end     
 
-        subgraph Scrapers ["🕷️ Web Scrapers"]
-            style Scrapers fill:#b5c6e0,stroke:#4c51bf
+        subgraph Scrapers ["Web Scrapers"]
+            style Scrapers fill:#D4D4D4,stroke:#616161
             Jumia[Jumia Scraper]
             Kilimall[Kilimall Scraper]
             RunScrapers[run_scrapers.py]
@@ -36,33 +39,36 @@ graph TB
         end
     end
 
-    subgraph Data ["💾 Data Layer"]
-        style Data fill:#ffd3b6,stroke:#c53030
+    subgraph Data ["Data Layer"]
+        style Data fill:#9E9E9E,stroke:#424242
         PM[Product Model]
         CM[Category Model]
         PLM[Platform Model]
     end
 
-    subgraph ExternalServices ["🌐 External Services"]
-        style ExternalServices fill:#ff9a9e,stroke:#9b2c2c
-        Jumia[Jumia Website]
-        Kilimall[Kilimall Website]
+    subgraph ExternalServices ["External Services"]
+        style ExternalServices fill:#757575,stroke:#424242
+        JumiaWeb[Jumia Website]
+        KilimallWeb[Kilimall Website]
         Heroku[Heroku Platform]
     end
 
-    %%% Connections between components %%%
+    %% Add spacing between nodes
+    linkStyle default stroke-width:2px,fill:none,stroke:#616161
+
+    %% Connections between components
     Pages --> UI
     UI --> |HTTP Requests| API
     JS --> |AJAX calls| API
     API --> BP
-    BP --> Models
-    Models --> DB
-    RunScrapers --> Jumia
-    RunScrapers --> Kilimall
-    Scheduler --> Jumia
-    Scheduler --> Kilimall
-    Jumia --> |Save Data| Models
-    Kilimall --> |Save Data| Models
+    BP --> PM & CM & PLM
+    PM & CM & PLM --> DB
+    RunScrapers --> JumiaWeb
+    RunScrapers --> KilimallWeb
+    Scheduler --> JumiaWeb
+    Scheduler --> KilimallWeb
+    Jumia --> |Save Data| PM
+    Kilimall --> |Save Data| PM
 
 ```
 
