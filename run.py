@@ -1,4 +1,5 @@
 import os
+import sys
 from app import create_app, db
 from app.models.models import Platform, Category
 from app.scrapers.run_scrapers import run_all_scrapers
@@ -27,7 +28,12 @@ def init_db():
             Platform.insert_default_platforms()
             Category.insert_default_categories()
             
-            logger.info("Database initialized successfully")
+            # Verify initialization
+            platforms = Platform.query.all()
+            categories = Category.query.all()
+            
+            logger.info(f"Platforms available: {[p.name for p in platforms]}")
+            logger.info(f"Categories available: {[c.name for c in categories]}")
 
         except Exception as e:
             logger.error(f"Error initializing database: {str(e)}")
@@ -35,6 +41,10 @@ def init_db():
             raise
 
 if __name__ == '__main__':
+    if len(sys.argv) > 1 and sys.argv[1] == 'init':
+        init_db()  # Initialize database
+        sys.exit(0)
+    
     init_db()  # Initialize database before running the app
     run_all_scrapers()  # Run scrapers once
     app.run(debug=True)  # Start the Flask app
