@@ -5,9 +5,8 @@
 ## System Overview
 
 ```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 50, 'rankSpacing': 80}} }%%
 graph TB
-    %% Define graph direction and spacing
-    graph[rankdir=TB, nodesep=50, ranksep=80]
 
     subgraph Frontend ["Frontend Layer"]
         style Frontend fill:#E0E0E0,stroke:#424242
