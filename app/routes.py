@@ -81,6 +81,22 @@ def get_product(id):
         'last_update': product.last_price_update.isoformat() if product.last_price_update else None
     })
 
+@app.route('/api/v1/categories')
+def get_categories():
+    categories = Category.query.all()
+    return jsonify([{
+        'id': c.id,
+        'name': c.name
+    } for c in categories])
+
+@app.route('/api/v1/platforms')
+def get_platforms():
+    platforms = Platform.query.all()
+    return jsonify([{
+        'id': p.id,
+        'name': p.name
+    } for p in platforms])
+
 @bp.route('/api/v1/stats')
 def get_stats():
     # Get platform-specific stats
@@ -109,42 +125,3 @@ def get_stats():
         stats[f'{platform.name.lower()}_prices'] = platform.total_prices
 
     return jsonify(stats)
-
-@bp.route('/api/v1/categories')
-def get_categories():
-    page = request.args.get('page', 1, type=int)
-    per_page = 10
-    query = Category.query
-
-    pagination = query.paginate(page=page, per_page=per_page)
-    categories = [{
-        'id': c.id,
-        'name': c.name
-    } for c in pagination.items]
-
-    return jsonify({
-        'items': categories,
-        'page': pagination.page,
-        'total_pages': pagination.pages,
-        'has_next': pagination.has_next
-    })
-
-@bp.route('/api/v1/platforms')
-def get_platforms():
-    page = request.args.get('page', 1, type=int)
-    per_page = 10
-    query = Platform.query
-
-    pagination = query.paginate(page=page, per_page=per_page)
-    platforms = [{
-        'id': p.id,
-        'name': p.name,
-        'url': p.url
-    } for p in pagination.items]
-
-    return jsonify({
-        'items': platforms,
-        'page': pagination.page,
-        'total_pages': pagination.pages,
-        'has_next': pagination.has_next
-    })
