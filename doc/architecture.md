@@ -6,7 +6,7 @@
 
 ```mermaid
 graph TB
-    subgraph Frontend ["🖥️ Frontend (HTML/CSS/JS)"]  
+    subgraph Frontend ["🖥️ Frontend (HTML/CSS/JS)"]
         style Frontend fill:#9ACD32,stroke:#3d8168
         UI[User Interface]
         subgraph Pages[Pages]
@@ -50,7 +50,7 @@ graph TB
         Heroku[Heroku Platform]
     end
 
-
+    %%% Connections between components %%%
     Pages --> UI
     UI --> |HTTP Requests| API
     JS --> |AJAX calls| API
@@ -63,6 +63,7 @@ graph TB
     Scheduler --> Kilimall
     Jumia --> |Save Data| Models
     Kilimall --> |Save Data| Models
+  
 ```
 
 ## System Components
