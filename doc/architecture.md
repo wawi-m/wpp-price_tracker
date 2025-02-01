@@ -6,8 +6,7 @@
 
 ```mermaid
 graph TB
-    subgraph Frontend ["🖥️ Frontend (HTML/CSS/JS)"]
-    
+    subgraph Frontend ["🖥️ Frontend (HTML/CSS/JS)"]  
         style Frontend fill:#9ACD32,stroke:#3d8168
         UI[User Interface]
         subgraph Pages[Pages]
