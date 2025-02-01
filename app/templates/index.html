@@ -23,23 +23,29 @@
             Tracking Prices Across Leading E-commerce Platforms
         </h2>
         <div class="row justify-content-center">
-            <div class="col-md-5">
-                <div class="platform-card jumia">
-                    <img src="{{ url_for('static', filename='media/jumia-logo.png') }}" alt="Jumia" class="platform-logo">
-                    <div class="platform-stats">
-                        <div class="stat-number" id="jumiaProducts">-</div>
-                        <div>Products Tracked</div>
-                        <div class="platform-prices" id="jumiaPrices">- prices tracked</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-5">
-                <div class="platform-card kilimall">
-                    <img src="{{ url_for('static', filename='media/kilimall-logo.png') }}" alt="Kilimall" class="platform-logo">
-                    <div class="platform-stats">
-                        <div class="stat-number" id="kilimallProducts">-</div>
-                        <div>Products Tracked</div>
-                        <div class="platform-prices" id="kilimallPrices">- prices tracked</div>
+            <div class="col-md-10">
+                <div class="platform-banner-card">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="platform-card jumia">
+                                <img src="{{ url_for('static', filename='media/jumia-logo.png') }}" alt="Jumia" class="platform-logo">
+                                <div class="platform-stats">
+                                    <div class="stat-number" id="jumiaProducts">-</div>
+                                    <div>Products Tracked</div>
+                                    <div class="platform-prices" id="jumiaPrices">- prices tracked</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="platform-card kilimall">
+                                <img src="{{ url_for('static', filename='media/kilimall-logo.png') }}" alt="Kilimall" class="platform-logo">
+                                <div class="platform-stats">
+                                    <div class="stat-number" id="kilimallProducts">-</div>
+                                    <div>Products Tracked</div>
+                                    <div class="platform-prices" id="kilimallPrices">- prices tracked</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
