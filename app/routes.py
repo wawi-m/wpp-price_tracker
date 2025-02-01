@@ -81,7 +81,7 @@ def get_product(id):
         'last_update': product.last_price_update.isoformat() if product.last_price_update else None
     })
 
-@bp.route('/api/v1/categories')
+@app.route('/api/v1/categories')
 def get_categories():
     categories = Category.query.all()
     return jsonify([{
@@ -89,7 +89,7 @@ def get_categories():
         'name': c.name
     } for c in categories])
 
-@bp.route('/api/v1/platforms')
+@app.route('/api/v1/platforms')
 def get_platforms():
     platforms = Platform.query.all()
     return jsonify([{
