@@ -6,15 +6,15 @@
 
 ```mermaid
 graph TB
-    subgraph Frontend ["🖥️ Frontend(HTML/CSS/JS)"]
+    subgraph Frontend ["🖥️ Frontend (HTML/CSS/JS)"]
         style Frontend fill:#9ACD32,stroke:#3d8168
         UI[User Interface]
-        subgraph Pages[Pages]
+          subgraph Pages[Pages]
             style Pages fill:#dcedc1,stroke:#8a9aa9
             HP[Home Page]
             CP[Compare Products]
             PH[Price History Charts]
-        end
+          end
         JS[JavaScript - main.js]
     end
 
