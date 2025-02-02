@@ -38,7 +38,9 @@ graph TB
 
     subgraph DataLayer ["💾 Data Layer"]
         style DataLayer fill:#a1b28d,stroke:#c53030
-        DL[Data Layer (PM, CM, PLM)]
+        PM[Product Model]
+        CM[Category Model]
+        PLM[Platform Model]
     end
 
     subgraph ExternalServices ["🌐 External Services"]
@@ -60,12 +62,17 @@ graph TB
     Scheduler --> RunScrapers
     RunScrapers --> Jumia_S
     RunScrapers --> Kilimall_S
-    Jumia_S --> |Scrapes Data| DL
-    Kilimall_S --> |Scrapes Data| DL
-    DL --> |Save Data| Heroku
+    Jumia_S --> |Scrapes Data| PM
+    Jumia_S --> |Scrapes Data| CM
+    Jumia_S --> |Scrapes Data| PLM
+    Kilimall_S --> |Scrapes Data| PM
+    Kilimall_S --> |Scrapes Data| CM
+    Kilimall_S --> |Scrapes Data| PLM
+    PM --> |Save Data| Heroku
+    CM --> |Save Data| Heroku
+    PLM --> |Save Data| Heroku
     Jumia --> Jumia_S
     Kilimall --> Kilimall_S
-
     
   
 ## System Components
