@@ -91,7 +91,7 @@ def get_stats():
         func.count(Product.id).label('total_products'),
         func.count(Product.price_history).label('total_prices')
     ).join(Product).group_by(Platform.name).all()
-    
+
     # Calculate price changes in the last 24 hours
     yesterday = datetime.utcnow() - timedelta(days=1)
     price_changes = db.session.query(
