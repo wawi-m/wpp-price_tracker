@@ -44,13 +44,13 @@ async function fetchAPI(endpoint) {
 // Stats Functions
 async function loadStats() {
     const statElements = {
-        totalProducts: document.getElementById('totalProducts'),
-        priceDrops: document.getElementById('priceDrops'),
-        priceIncreases: document.getElementById('priceIncreases'),
-        jumiaProducts: document.getElementById('jumiaProducts'),
-        jumiaPrices: document.getElementById('jumiaPrices'),
-        kilimallProducts: document.getElementById('kilimallProducts'),
-        kilimallPrices: document.getElementById('kilimallPrices')
+        total_products: document.getElementById('totalProducts'),
+        price_drops: document.getElementById('priceDrops'),
+        price_increases: document.getElementById('priceIncreases'),
+        jumia_products: document.getElementById('jumiaProducts'),
+        jumia_prices: document.getElementById('jumiaPrices'),
+        kilimall_products: document.getElementById('kilimallProducts'),
+        kilimall_prices: document.getElementById('kilimallPrices')
     };
 
     // Verify all elements exist
