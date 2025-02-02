@@ -71,15 +71,15 @@ async function loadStats() {
         console.log('Received stats data:', data);
         
         // Update stats with fallback to 0
-        statElements.totalProducts.textContent = data.total_products || '0';
-        statElements.priceDrops.textContent = data.price_drops || '0';
-        statElements.priceIncreases.textContent = data.price_increases || '0';
+        statElements.total_products.textContent = data.total_products || '0';
+        statElements.price_drops.textContent = data.price_drops || '0';
+        statElements.price_increases.textContent = data.price_increases || '0';
         
         // Update platform stats
-        statElements.jumiaProducts.textContent = data.jumia_products || '0';
-        statElements.jumiaPrices.textContent = `${data.jumia_prices || '0'} prices tracked`;
-        statElements.kilimallProducts.textContent = data.kilimall_products || '0';
-        statElements.kilimallPrices.textContent = `${data.kilimall_prices || '0'} prices tracked`;
+        statElements.jumia_products.textContent = data.jumia_products || '0';
+        statElements.jumia_prices.textContent = `${data.jumia_prices || '0'} prices tracked`;
+        statElements.kilimall_products.textContent = data.kilimall_products || '0';
+        statElements.kilimall_prices.textContent = `${data.kilimall_prices || '0'} prices tracked`;
 
         // Log successful update
         console.log('Stats updated successfully');
