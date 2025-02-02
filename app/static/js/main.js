@@ -32,7 +32,7 @@ const placeholderImage = '/static/media/placeholder.png';
 // API Functions
 async function fetchAPI(endpoint) {
     try {
-        const response = await fetch(`/api/v1/${endpoint}`);
+        const response = await fetch(`https://wpp-pricetracker-7e955bd28547.herokuapp.com/api/v1/${endpoint}`);
         if (!response.ok) throw new Error('Network response was not ok');
         return await response.json();
     } catch (error) {
@@ -218,7 +218,7 @@ async function loadPriceHistory(productId) {
         };
         
         console.log(chartData);
-        
+
         if (window.priceHistoryChart) {
             window.priceHistoryChart.destroy();
         }

@@ -11,6 +11,9 @@
                 <div class="product-select mb-4">
                     <select class="form-select" id="productSelect">
                         <option value="">Select a product...</option>
+                        {% for product in products %}
+                        <option value="{{product.id}}">{{product.name}} - {{formatPrice(product.current_price)}}</option>
+                        {% endfor %}
                     </select>
                 </div>
 
