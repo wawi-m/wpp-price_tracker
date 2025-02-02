@@ -3,7 +3,7 @@ from app.api import bp
 from app.models.models import Product, Platform, Category
 from app import db
 from datetime import datetime, timedelta
-from sqlalchemy import func, case
+from sqlalchemy import func, case, and_
 from sqlalchemy.orm import joinedload
 
 @bp.route('/products')
@@ -88,15 +88,37 @@ def get_stats():
     # Get platform-specific stats
     platform_stats = db.session.query(
         Platform.name,
-        func.count(Product.id).label('total_products'),
-        func.count(Product.price_history).label('total_prices')
-    ).join(Product).group_by(Platform.name).all()
+        func.count(Product.id).label('total_products')
+    ).join(Product, isouter=True).group_by(Platform.name).all()
 
     # Calculate price changes in the last 24 hours
     yesterday = datetime.utcnow() - timedelta(days=1)
+
+    # Using a case expression to count price drops and increases
     price_changes = db.session.query(
-        func.sum(case((Product.current_price < Product.price_history[-1]['price'], 1), else_=0)).label('drops'),
-        func.sum(case((Product.current_price > Product.price_history[-1]['price'], 1), else_=0)).label('increases')
+        func.sum(
+            case(
+                [
+                    (and_(
+                        Product.price_history.isnot(None),
+                        Product.price_history != '[]',
+                        Product.current_price < Product.price_history[-1]['price']
+                    ), 1)
+                ], else_=0
+            )
+        ).label('drops'),
+        
+        func.sum(
+            case(
+                [
+                    (and_(
+                        Product.price_history.isnot(None),
+                        Product.price_history != '[]',
+                        Product.current_price > Product.price_history[-1]['price']
+                    ), 1)
+                ], else_=0
+            )
+        ).label('increases')
     ).filter(Product.last_price_update >= yesterday).first()
 
     stats = {
@@ -108,6 +130,5 @@ def get_stats():
     # Add platform-specific stats
     for platform in platform_stats:
         stats[f'{platform.name.lower()}_products'] = platform.total_products
-        stats[f'{platform.name.lower()}_prices'] = platform.total_prices
 
     return jsonify(stats)

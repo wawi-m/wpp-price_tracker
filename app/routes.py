@@ -33,7 +33,7 @@ def price_history():
 def get_products():
     try:
         page = request.args.get('page', 1, type=int)
-        per_page = 12
+        per_page = request.args.get('per_page', 12, type=int)
         query = Product.query.order_by(Product.updated_at.desc())
         
         # Apply filters
@@ -139,8 +139,18 @@ def get_stats():
         # Calculate price changes in the last 24 hours
         yesterday = datetime.utcnow() - timedelta(days=1)
         price_changes = db.session.query(
-            func.sum(case((Product.current_price < Product.price_history[-1]['price'], 1), else_=0)).label('drops'),
-            func.sum(case((Product.current_price > Product.price_history[-1]['price'], 1), else_=0)).label('increases')
+            func.sum(
+                case(
+                    [(Product.price_history.isnot(None) & 
+                      (Product.current_price < Product.price_history[-1]['price'])), 1]
+                , else_=0)
+            ).label('drops'),
+            func.sum(
+                case(
+                    [(Product.price_history.isnot(None) & 
+                      (Product.current_price > Product.price_history[-1]['price'])), 1]
+                , else_=0)
+            ).label('increases')
         ).filter(Product.last_price_update >= yesterday).first()
 
         # Initialize stats with default values
