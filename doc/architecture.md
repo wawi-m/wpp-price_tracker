@@ -1,79 +1,84 @@
 # PriceTrac Architecture
 
-> A modern web application for tracking product prices across multiple e-commerce platforms
+> A modern web application for tracking product prices across multiple e-commerce platforms. Price Trac The Price Tracker is a web application that monitors and compares product prices across major e-commerce platforms in Kenya. Built with Flask and modern web technologies, it provides real-time price tracking and historical price analysis.
 
 ## System Overview
 
 ```mermaid
+
 graph TB
-    subgraph Frontend ["🖥️ Frontend(HTML/CSS/JS)"]
+    %% Frontend Components
+    subgraph Frontend["🖥️ Frontend(HTML/CSS/JS Flask Templates)"]
         style Frontend fill:#a1b28d,stroke:#3d8168
-        UI[User Interface]
+        UI[Web UI]
         subgraph Pages[Pages]
-            style Pages fill:#dcedc1,stroke:#8a9aa9
             HP[Home Page]
-            CP[Compare Products]
-            PH[Price History Charts]
+            CP[Compare Page]
+            PH[Price History Page]
         end
         JS[JavaScript - main.js]
+        CSS[CSS - style.css]
     end
 
-    subgraph Backend ["⚙️ Backend (Flask)"]
+    %% Backend Components
+    subgraph Backend["⚙️ Backend - Flask Application"]
         style Backend fill:#a1b28d,stroke:#3d8168
-        subgraph App["🖥️ App"]
-        style App fill:#bcd4e6,stroke:#2b6cb0
-        API[REST API]
+        API[API Routes]
         BP[Blueprint - main]
-        DB[(PostgreSQL)]
+        DB[(PostgreSQL Database)]
+        
+        subgraph Models["💾 Data Layer"]
+            style Models fill:#a1b28d,stroke:#c53030
+            PM[Product Model]
+            CM[Category Model]
+            PLM[Platform Model]
+            PH_M[PriceHistory Model]
+        end
+        
+        subgraph Scrapers["🕷️ Web Scrapers"]
+            style Scrapers fill:#b5c6e0,stroke:#4c51bf
+            JS_S[Jumia Scraper]
+            KM_S[Kilimall Scraper]
+            RS[run_scrapers.py]
+            SC[Scheduler]
         end
 
-        subgraph Scrapers ["🕷️ Web Scrapers"]
-          style Scrapers fill:#b5c6e0,stroke:#4c51bf
-          Jumia_S[Jumia Scraper]
-          Kilimall_S[Kilimall Scraper]
-          RunScrapers[run_scrapers.py]
-          Scheduler[APScheduler]
+        subgraph Config[Configuration]
+            ENV[Environment Variables]
+            CFG[Config Classes]
         end
     end
 
-    subgraph DataLayer ["💾 Data Layer"]
-        style DataLayer fill:#a1b28d,stroke:#c53030
-        PM[Product Model]
-        CM[Category Model]
-        PLM[Platform Model]
-    end
-
+    %% External Services
     subgraph ExternalServices ["🌐 External Services"]
         style ExternalServices fill:#a1b28d,stroke:#9b2c2c
-        Jumia[Jumia Website]
-        Kilimall[Kilimall Website]
-        Heroku[Heroku Platform]
+        JUM[Jumia Website]
+        KIL[Kilimall Website]
+        subgraph Heroku[Heroku Platform]
+            HD[(Heroku Postgres)]
+            DY[Dyno]
+        end
     end
 
-    %%% Connections between components %%%
-    Pages --> UI
+    %% Connections
     UI --> |HTTP Requests| API
-    JS --> |AJAX calls| API
+    JS --> |AJAX Calls| API
     API --> BP
-    BP --> DB
-    PM --> DB
-    CM --> DB
-    PLM --> DB
-    Scheduler --> RunScrapers
-    RunScrapers --> Jumia_S
-    RunScrapers --> Kilimall_S
-    Jumia_S --> |Scrapes Data| PM
-    Jumia_S --> |Scrapes Data| CM
-    Jumia_S --> |Scrapes Data| PLM
-    Kilimall_S --> |Scrapes Data| PM
-    Kilimall_S --> |Scrapes Data| CM
-    Kilimall_S --> |Scrapes Data| PLM
-    PM --> |Save Data| Heroku
-    CM --> |Save Data| Heroku
-    PLM --> |Save Data| Heroku
-    Jumia --> Jumia_S
-    Kilimall --> Kilimall_S
+    BP --> Models
+    Models --> DB
     
+    RS --> JS_S
+    RS --> KM_S
+    JS_S --> JUM
+    KM_S --> KIL
+    
+    JS_S --> |Save Data| Models
+    KM_S --> |Save Data| Models
+    
+    SC --> RS
+    ENV --> CFG
+    CFG --> BP
+```   
   
 ## System Components
 
