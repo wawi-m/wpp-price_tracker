@@ -62,9 +62,9 @@ graph TB
     Scheduler --> RunScrapers
     RunScrapers --> Jumia_S
     RunScrapers --> Kilimall_S
-    Jumia_S --> |Save Data| DataLayer
-    Kilimall_S --> |Save Data| DataLayer
-    DataLayer --> |Save Data| Heroku
+    Jumia_S --> |Save Data| Data
+    Kilimall_S --> |Save Data| Data
+    Data --> |Save Data| Heroku
     Jumia --> Jumia_S
     Kilimall --> Kilimall_S
     
