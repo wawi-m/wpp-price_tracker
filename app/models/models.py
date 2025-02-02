@@ -39,37 +39,52 @@ class Product(db.Model):
     __tablename__ = 'products'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
-    url = db.Column(db.String(500), unique=True, nullable=False)
+    url = db.Column(db.String(500), nullable=False)
     image_url = db.Column(db.String(500))
-    description = db.Column(db.Text)
     current_price = db.Column(db.Float, nullable=False)
-    currency = db.Column(db.String(3), default='KES')
-    last_price_update = db.Column(db.DateTime, default=datetime.utcnow)
+    currency = db.Column(db.String(10), default='KES')
     price_history = db.Column(db.JSON, default=list)
-    platform_id = db.Column(db.Integer, db.ForeignKey('platforms.id'), nullable=False)
-    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
+    last_price_update = db.Column(db.DateTime, default=datetime.utcnow)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Foreign Keys
+    platform_id = db.Column(db.Integer, db.ForeignKey('platforms.id'), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
+    
+    def to_dict(self):
+        """Convert product to dictionary representation"""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'url': self.url,
+            'image_url': self.image_url,
+            'current_price': self.current_price,
+            'currency': self.currency,
+            'platform': self.platform.name if self.platform else None,
+            'category': self.category.name if self.category else None,
+            'last_update': self.last_price_update.isoformat() if self.last_price_update else None
+        }
+    
+    def update_price(self, new_price):
+        """Update product price and price history"""
+        if new_price != self.current_price:
+            # Add current price to history before updating
+            history_entry = {
+                'price': self.current_price,
+                'timestamp': datetime.utcnow().isoformat()
+            }
+            if not self.price_history:
+                self.price_history = []
+            self.price_history.append(history_entry)
+            
+            # Update current price
+            self.current_price = new_price
+            self.last_price_update = datetime.utcnow()
 
     @property
     def formatted_price(self):
         return f"{self.currency} {self.current_price:,.2f}"
-
-    def update_price(self, new_price):
-        """Update product price and maintain history"""
-        if not self.price_history:
-            self.price_history = []
-            
-        # Add current price to history
-        if self.current_price is not None:
-            self.price_history.append({
-                'price': self.current_price,
-                'timestamp': self.last_price_update.isoformat()
-            })
-            
-        # Update current price
-        self.current_price = new_price
-        self.last_price_update = datetime.utcnow()
 
     @property
     def discount(self):
