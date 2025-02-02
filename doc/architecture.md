@@ -9,7 +9,7 @@
 graph TB
     %% Frontend Components
     subgraph Frontend["🖥️ Frontend(HTML/CSS/JS Flask Templates)"]
-        style Frontend fill:#a1b28d,stroke:#3d8168
+        style Frontend fill:#a1b28d
         UI[Web UI]
         subgraph Pages[Pages]
             HP[Home Page]
@@ -22,13 +22,12 @@ graph TB
 
     %% Backend Components
     subgraph Backend["⚙️ Backend - Flask Application"]
-        style Backend fill:#a1b28d,stroke:#3d8168
+        style Backend fill:#a1b28d
         API[API Routes]
         BP[Blueprint - main]
         DB[(PostgreSQL Database)]
         
         subgraph Models["💾 Data Layer"]
-            style Models fill:#a1b28d,stroke:#c53030
             PM[Product Model]
             CM[Category Model]
             PLM[Platform Model]
@@ -36,7 +35,6 @@ graph TB
         end
         
         subgraph Scrapers["🕷️ Web Scrapers"]
-            style Scrapers fill:#b5c6e0,stroke:#4c51bf
             JS_S[Jumia Scraper]
             KM_S[Kilimall Scraper]
             RS[run_scrapers.py]
