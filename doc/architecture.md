@@ -1,76 +1,73 @@
-# WPP Price Tracker Architecture
+# PriceTrac Architecture
 
 > A modern web application for tracking product prices across multiple e-commerce platforms
 
 ## System Overview
 
 ```mermaid
-%%{init: {'flowchart': {'nodeSpacing': 50, 'rankSpacing': 80}} }%%
 graph TB
-
-    subgraph Frontend ["Frontend Layer"]
-        style Frontend fill:#E0E0E0,stroke:#424242
+    subgraph Frontend ["🖥️ Frontend(HTML/CSS/JS)"]
+        style Frontend fill:#a1b28d,stroke:#3d8168
         UI[User Interface]
-        JS[JavaScript - main.js]
         subgraph Pages[Pages]
-          style Pages fill:#F5F5F5,stroke:#9E9E9E
-          HP[Home Page]
-          CP[Compare Products]
-          PH[Price History Charts]
+            style Pages fill:#dcedc1,stroke:#8a9aa9
+            HP[Home Page]
+            CP[Compare Products]
+            PH[Price History Charts]
         end
+        JS[JavaScript - main.js]
     end
 
-    subgraph Backend ["Backend Layer"]
-        style Backend fill:#BDBDBD,stroke:#424242
-        subgraph App["App"]
-        style App fill:#E0E0E0,stroke:#616161
+    subgraph Backend ["⚙️ Backend (Flask)"]
+        style Backend fill:#a1b28d,stroke:#3d8168
+        subgraph App["🖥️ App"]
+        style App fill:#bcd4e6,stroke:#2b6cb0
         API[REST API]
         BP[Blueprint - main]
         DB[(PostgreSQL)]
         end     
 
-        subgraph Scrapers ["Web Scrapers"]
-            style Scrapers fill:#D4D4D4,stroke:#616161
-            Jumia[Jumia Scraper]
-            Kilimall[Kilimall Scraper]
-            RunScrapers[run_scrapers.py]
-            Scheduler[APScheduler]
+        subgraph Scrapers ["🕷️ Web Scrapers"]
+          style Scrapers fill:#b5c6e0,stroke:#4c51bf
+          Jumia_S[Jumia Scraper]
+          Kilimall_S[Kilimall Scraper]
+          RunScrapers[run_scrapers.py]
+          Scheduler[APScheduler]
         end
     end
 
-    subgraph Data ["Data Layer"]
-        style Data fill:#9E9E9E,stroke:#424242
+    subgraph Data ["💾 Data Layer"]
+        style Data fill:#a1b28d,stroke:#c53030
         PM[Product Model]
         CM[Category Model]
         PLM[Platform Model]
     end
 
-    subgraph ExternalServices ["External Services"]
-        style ExternalServices fill:#757575,stroke:#424242
-        JumiaWeb[Jumia Website]
-        KilimallWeb[Kilimall Website]
+    subgraph ExternalServices ["🌐 External Services"]
+        style ExternalServices fill:#a1b28d,stroke:#9b2c2c
+        Jumia[Jumia Website]
+        Kilimall[Kilimall Website]
         Heroku[Heroku Platform]
     end
 
-    %% Add spacing between nodes
-    linkStyle default stroke-width:2px,fill:none,stroke:#616161
-
-    %% Connections between components
+    %%% Connections between components %%%
     Pages --> UI
     UI --> |HTTP Requests| API
     JS --> |AJAX calls| API
     API --> BP
-    BP --> PM & CM & PLM
-    PM & CM & PLM --> DB
-    RunScrapers --> JumiaWeb
-    RunScrapers --> KilimallWeb
-    Scheduler --> JumiaWeb
-    Scheduler --> KilimallWeb
-    Jumia --> |Save Data| PM
-    Kilimall --> |Save Data| PM
-
-```
-
+    BP --> DataLayer
+    PM --> DB
+    CM --> DB
+    PLM --> DB
+    RunScrapers --> Jumia_S
+    RunScrapers --> Kilimall_S
+    Scheduler --> RunScrapers
+    Jumia_S --> |Save Data| Models
+    Kilimall_S --> |Save Data| Models
+    Jumia --> Jumia_S
+    Kilimall --> Kilimall_S
+    DataLayer --> |Save Data| Heroku
+  
 ## System Components
 
 ### Frontend Layer 🎨
