@@ -60,6 +60,8 @@ async function loadStats() {
 
     if (missingElements.length > 0) {
         console.error('Missing stat elements:', missingElements);
+        // Optionally, display an error message in the UI
+        document.getElementById('error_message').innerText = 'Some statistics failed to load.';
         return;
     }
 
