@@ -25,7 +25,7 @@ graph TB
         API[REST API]
         BP[Blueprint - main]
         DB[(PostgreSQL)]
-        end     
+        end
 
         subgraph Scrapers ["🕷️ Web Scrapers"]
           style Scrapers fill:#b5c6e0,stroke:#4c51bf
@@ -36,11 +36,9 @@ graph TB
         end
     end
 
-    subgraph Data ["💾 Data Layer"]
-        style Data fill:#a1b28d,stroke:#c53030
-        PM[Product Model]
-        CM[Category Model]
-        PLM[Platform Model]
+    subgraph DataLayer ["💾 Data Layer"]
+        style DataLayer fill:#a1b28d,stroke:#c53030
+        DL[Data Layer (PM, CM, PLM)]
     end
 
     subgraph ExternalServices ["🌐 External Services"]
@@ -55,18 +53,19 @@ graph TB
     UI --> |HTTP Requests| API
     JS --> |AJAX calls| API
     API --> BP
-    BP --> DataLayer
+    BP --> DB
     PM --> DB
     CM --> DB
     PLM --> DB
     Scheduler --> RunScrapers
     RunScrapers --> Jumia_S
     RunScrapers --> Kilimall_S
-    Jumia_S --> |Save Data| Data
-    Kilimall_S --> |Save Data| Data
-    Data --> |Save Data| Heroku
+    Jumia_S --> |Scrapes Data| DL
+    Kilimall_S --> |Scrapes Data| DL
+    DL --> |Save Data| Heroku
     Jumia --> Jumia_S
     Kilimall --> Kilimall_S
+
     
   
 ## System Components
