@@ -54,14 +54,13 @@ async function loadStats() {
     };
 
     // Verify all elements exist
+    console.log("statElements:", statElements); // Add this line!
     const missingElements = Object.entries(statElements)
         .filter(([key, element]) => !element)
         .map(([key]) => key);
 
     if (missingElements.length > 0) {
         console.error('Missing stat elements:', missingElements);
-        // Optionally, display an error message in the UI
-        document.getElementById('error_message').innerText = 'Some statistics failed to load.';
         return;
     }
 
