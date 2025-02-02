@@ -44,13 +44,13 @@ async function fetchAPI(endpoint) {
 // Stats Functions
 async function loadStats() {
     const statElements = {
-        total_products: document.getElementById('totalProducts'),
-        price_drops: document.getElementById('priceDrops'),
-        price_increases: document.getElementById('priceIncreases'),
-        jumia_products: document.getElementById('jumiaProducts'),
-        jumia_prices: document.getElementById('jumiaPrices'),
-        kilimall_products: document.getElementById('kilimallProducts'),
-        kilimall_prices: document.getElementById('kilimallPrices')
+        totalproducts: document.getElementById('total_products'),
+        pricedrops: document.getElementById('price_drops'),
+        priceincreases: document.getElementById('price_increases'),
+        jumiaproducts: document.getElementById('jumia_products'),
+        jumiaprices: document.getElementById('jumia_prices'),
+        kilimallproducts: document.getElementById('kilimall_products'),
+        kilimallprices: document.getElementById('kilimall_prices')
     };
 
     // Verify all elements exist
@@ -71,15 +71,15 @@ async function loadStats() {
         console.log('Received stats data:', data);
         
         // Update stats with fallback to 0
-        statElements.total_products.textContent = data.total_products || '0';
-        statElements.price_drops.textContent = data.price_drops || '0';
-        statElements.price_increases.textContent = data.price_increases || '0';
+        statElements.totalproducts.textContent = data.totalproducts || '0';
+        statElements.pricedrops.textContent = data.pricedrops || '0';
+        statElements.priceincreases.textContent = data.priceincreases || '0';
         
         // Update platform stats
-        statElements.jumia_products.textContent = data.jumia_products || '0';
-        statElements.jumia_prices.textContent = `${data.jumia_prices || '0'} prices tracked`;
-        statElements.kilimall_products.textContent = data.kilimall_products || '0';
-        statElements.kilimall_prices.textContent = `${data.kilimall_prices || '0'} prices tracked`;
+        statElements.jumiaproducts.textContent = data.jumiaproducts || '0';
+        statElements.jumiaprices.textContent = `${data.jumiaprices || '0'} prices tracked`;
+        statElements.kilimallproducts.textContent = data.kilimallproducts || '0';
+        statElements.kilimallprices.textContent = `${data.kilimallprices || '0'} prices tracked`;
 
         // Log successful update
         console.log('Stats updated successfully');
