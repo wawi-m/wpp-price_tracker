@@ -43,24 +43,55 @@ async function fetchAPI(endpoint) {
 
 // Stats Functions
 async function loadStats() {
+    const statElements = {
+        totalProducts: document.getElementById('totalProducts'),
+        priceDrops: document.getElementById('priceDrops'),
+        priceIncreases: document.getElementById('priceIncreases'),
+        jumiaProducts: document.getElementById('jumiaProducts'),
+        jumiaPrices: document.getElementById('jumiaPrices'),
+        kilimallProducts: document.getElementById('kilimallProducts'),
+        kilimallPrices: document.getElementById('kilimallPrices')
+    };
+
+    // Verify all elements exist
+    const missingElements = Object.entries(statElements)
+        .filter(([key, element]) => !element)
+        .map(([key]) => key);
+
+    if (missingElements.length > 0) {
+        console.error('Missing stat elements:', missingElements);
+        return;
+    }
+
     try {
         const data = await fetchAPI('stats');
         if (!data) throw new Error('Failed to load stats');
         
+        // Log received data for debugging
+        console.log('Received stats data:', data);
+        
         // Update stats with fallback to 0
-        document.getElementById('totalProducts').textContent = data.total_products || '0';
-        document.getElementById('priceDrops').textContent = data.price_drops || '0';
-        document.getElementById('priceIncreases').textContent = data.price_increases || '0';
+        statElements.totalProducts.textContent = data.total_products || '0';
+        statElements.priceDrops.textContent = data.price_drops || '0';
+        statElements.priceIncreases.textContent = data.price_increases || '0';
         
         // Update platform stats
-        document.getElementById('jumiaProducts').textContent = data.jumia_products || '0';
-        document.getElementById('jumiaPrices').textContent = `${data.jumia_prices || '0'} prices tracked`;
-        document.getElementById('kilimallProducts').textContent = data.kilimall_products || '0';
-        document.getElementById('kilimallPrices').textContent = `${data.kilimall_prices || '0'} prices tracked`;
+        statElements.jumiaProducts.textContent = data.jumia_products || '0';
+        statElements.jumiaPrices.textContent = `${data.jumia_prices || '0'} prices tracked`;
+        statElements.kilimallProducts.textContent = data.kilimall_products || '0';
+        statElements.kilimallPrices.textContent = `${data.kilimall_prices || '0'} prices tracked`;
+
+        // Log successful update
+        console.log('Stats updated successfully');
     } catch (error) {
         console.error('Error loading stats:', error);
-        ['totalProducts', 'priceDrops', 'priceIncreases'].forEach(id => {
-            document.getElementById(id).textContent = '0';
+        // Set all stats to 0 on error
+        Object.values(statElements).forEach(element => {
+            if (element.id.includes('Prices')) {
+                element.textContent = '0 prices tracked';
+            } else {
+                element.textContent = '0';
+            }
         });
     }
 }
@@ -68,8 +99,35 @@ async function loadStats() {
 // Products Functions
 async function loadProducts(page = 1, append = false, search = '') {
     try {
-        const categoryId = document.getElementById('categoryFilter')?.value;
-        const platformId = document.getElementById('platformFilter')?.value;
+        // First, load categories and platforms if needed
+        const categoryFilter = document.getElementById('categoryFilter');
+        const platformFilter = document.getElementById('platformFilter');
+        
+        // Load categories if filter is empty
+        if (categoryFilter && !categoryFilter.children.length) {
+            const categories = await fetchAPI('categories');
+            if (categories) {
+                categoryFilter.innerHTML = '<option value="">All Categories</option>';
+                categories.forEach(category => {
+                    categoryFilter.innerHTML += `<option value="${category.id}">${category.name}</option>`;
+                });
+            }
+        }
+        
+        // Load platforms if filter is empty
+        if (platformFilter && !platformFilter.children.length) {
+            const platforms = await fetchAPI('platforms');
+            if (platforms) {
+                platformFilter.innerHTML = '<option value="">All Platforms</option>';
+                platforms.forEach(platform => {
+                    platformFilter.innerHTML += `<option value="${platform.id}">${platform.name}</option>`;
+                });
+            }
+        }
+
+        // Get selected filter values
+        const categoryId = categoryFilter?.value;
+        const platformId = platformFilter?.value;
 
         const params = new URLSearchParams({
             page,
@@ -158,7 +216,9 @@ async function loadPriceHistory(productId) {
                 tension: 0.1
             }]
         };
-
+        
+        console.log(chartData);
+        
         if (window.priceHistoryChart) {
             window.priceHistoryChart.destroy();
         }

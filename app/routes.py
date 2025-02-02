@@ -134,7 +134,7 @@ def get_stats():
             Platform.name,
             func.count(Product.id).label('total_products'),
             func.count(Product.price_history).label('total_prices')
-        ).join(Product).group_by(Platform.name).all()
+        ).join(Product, isouter=True).group_by(Platform.name).all()
         
         # Calculate price changes in the last 24 hours
         yesterday = datetime.utcnow() - timedelta(days=1)
@@ -143,18 +143,41 @@ def get_stats():
             func.sum(case((Product.current_price > Product.price_history[-1]['price'], 1), else_=0)).label('increases')
         ).filter(Product.last_price_update >= yesterday).first()
 
+        # Initialize stats with default values
         stats = {
             'total_products': Product.query.count(),
-            'price_drops': price_changes.drops if price_changes.drops else 0,
-            'price_increases': price_changes.increases if price_changes.increases else 0
+            'price_drops': price_changes.drops if price_changes and price_changes.drops else 0,
+            'price_increases': price_changes.increases if price_changes and price_changes.increases else 0,
+            'jumia_products': 0,
+            'jumia_prices': 0,
+            'kilimall_products': 0,
+            'kilimall_prices': 0
         }
 
         # Add platform-specific stats
         for platform in platform_stats:
-            stats[f'{platform.name.lower()}_products'] = platform.total_products
-            stats[f'{platform.name.lower()}_prices'] = platform.total_prices
+            stats[f'{platform.name.lower()}_products'] = platform.total_products or 0
+            stats[f'{platform.name.lower()}_prices'] = platform.total_prices or 0
 
+        logger.info(f"Stats generated successfully: {stats}")
         return jsonify(stats)
     except Exception as e:
         logger.error(f"Error fetching stats: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
+
+@bp.route('/api/v1/test-stats')
+def test_stats():
+    """Test endpoint to verify stats calculation"""
+    try:
+        # Get raw counts
+        product_count = Product.query.count()
+        platform_counts = {p.name: p.products.count() for p in Platform.query.all()}
+        
+        return jsonify({
+            'total_products': product_count,
+            'platform_counts': platform_counts,
+            'message': 'This is a test endpoint to verify stats calculation'
+        })
+    except Exception as e:
+        logger.error(f"Error in test-stats: {str(e)}")
+        return jsonify({'error': str(e)}), 500
