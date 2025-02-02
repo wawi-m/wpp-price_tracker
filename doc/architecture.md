@@ -59,14 +59,15 @@ graph TB
     PM --> DB
     CM --> DB
     PLM --> DB
+    Scheduler --> RunScrapers
     RunScrapers --> Jumia_S
     RunScrapers --> Kilimall_S
-    Scheduler --> RunScrapers
-    Jumia_S --> |Save Data| Models
-    Kilimall_S --> |Save Data| Models
+    Jumia_S --> |Save Data| DataLayer
+    Kilimall_S --> |Save Data| DataLayer
+    DataLayer --> |Save Data| Heroku
     Jumia --> Jumia_S
     Kilimall --> Kilimall_S
-    DataLayer --> |Save Data| Heroku
+    
   
 ## System Components
 
