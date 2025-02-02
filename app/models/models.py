@@ -76,8 +76,14 @@ class Product(db.Model):
             }
             if not self.price_history:
                 self.price_history = []
-            self.price_history.append(history_entry)
-            
+                self.price_history.append(history_entry)
+            else:
+                new_history_entry = {
+                    'price': new_price,
+                    'timestamp': datetime.utcnow().isoformat()
+                }
+                self.price_history.append(new_history_entry)    
+                        
             # Update current price
             self.current_price = new_price
             self.last_price_update = datetime.utcnow()

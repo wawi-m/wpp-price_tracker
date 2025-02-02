@@ -24,8 +24,7 @@
                                 <h3>Product 2</h3>
                                 <select class="form-select mb-3" id="product2">
                                     <option value="">Select a product...</option>
-                                    <option value="">banana</option>
-                                    <option value="">orange</option>
+                                    <option value="{product.id}">{product.name} - {formatPrice(product.current_price)}</option>
                                 </select>
                                 <div id="product2Details" class="product-details"></div>
                             </div>
