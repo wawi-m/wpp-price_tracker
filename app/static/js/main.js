@@ -54,7 +54,7 @@ async function loadStats() {
     };
 
     // Verify all elements exist
-    console.log("statElements:", statElements); // Add this line!
+    console.log("statElements:", statElements);
     const missingElements = Object.entries(statElements)
         .filter(([key, element]) => !element)
         .map(([key]) => key);

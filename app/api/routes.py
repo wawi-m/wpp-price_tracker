@@ -10,7 +10,7 @@ from sqlalchemy.orm import joinedload
 def get_products():
     """Get paginated list of products"""
     page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 50, type=int)
+    per_page = request.args.get('per_page', 12, type=int)
     query = Product.query.order_by(Product.updated_at.desc())
     
     # Apply filters
