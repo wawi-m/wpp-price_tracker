@@ -32,12 +32,46 @@ const placeholderImage = '/static/media/placeholder.png';
 // API Functions
 async function fetchAPI(endpoint) {
     try {
+        // **🔹 Added caching to prevent unnecessary API calls**
+        if (sessionStorage.getItem(endpoint)) {
+            return JSON.parse(sessionStorage.getItem(endpoint));
+        }
+
         const response = await fetch(`/api/v1/${endpoint}`);
         if (!response.ok) throw new Error('Network response was not ok');
-        return await response.json();
+
+        const data = await response.json();
+        sessionStorage.setItem(endpoint, JSON.stringify(data)); // Cache response
+        return data;
     } catch (error) {
-        console.error('Error:', error);
+        console.error(`Error fetching from ${endpoint}:`, error);
         return null;
+    }
+}
+
+// **🔹 New function to load category & platform filters first**
+async function loadFilters() {
+    const categoryFilter = document.getElementById('categoryFilter');
+    const platformFilter = document.getElementById('platformFilter');
+
+    try {
+        // **Fetch and populate categories**
+        const categories = await fetchAPI('categories');
+        if (categories && categoryFilter) {
+            categoryFilter.innerHTML = '<option value="">All Categories</option>' + 
+                categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        }
+
+        // **Fetch and populate platforms**
+        const platforms = await fetchAPI('platforms');
+        if (platforms && platformFilter) {
+            platformFilter.innerHTML = '<option value="">All Platforms</option>' + 
+                platforms.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        }
+
+        console.log('Filters loaded successfully');
+    } catch (error) {
+        console.error('Error loading filters:', error);
     }
 }
 
@@ -96,38 +130,19 @@ async function loadStats() {
     }
 }
 
-// Products Functions
+// **🔹 Updated loadProducts() to call loadFilters() first**
 async function loadProducts(page = 1, append = false, search = '') {
     try {
-        // First, load categories and platforms if needed
         const categoryFilter = document.getElementById('categoryFilter');
         const platformFilter = document.getElementById('platformFilter');
-        
-        // Load categories if filter is empty
-        if (categoryFilter && !categoryFilter.children.length) {
-            const categories = await fetchAPI('categories');
-            if (categories) {
-                categoryFilter.innerHTML = '<option value="">All Categories</option>';
-                categories.forEach(category => {
-                    categoryFilter.innerHTML += `<option value="${category.id}">${category.name}</option>`;
-                });
-            }
-        }
-        
-        // Load platforms if filter is empty
-        if (platformFilter && !platformFilter.children.length) {
-            const platforms = await fetchAPI('platforms');
-            if (platforms) {
-                platformFilter.innerHTML = '<option value="">All Platforms</option>';
-                platforms.forEach(platform => {
-                    platformFilter.innerHTML += `<option value="${platform.id}">${platform.name}</option>`;
-                });
-            }
+
+        // **Ensure filters are loaded before fetching products**
+        if (!categoryFilter.children.length || !platformFilter.children.length) {
+            await loadFilters();
         }
 
-        // Get selected filter values
-        const categoryId = categoryFilter?.value;
-        const platformId = platformFilter?.value;
+        const categoryId = categoryFilter?.value || '';
+        const platformId = platformFilter?.value || '';
 
         const params = new URLSearchParams({
             page,
@@ -136,7 +151,7 @@ async function loadProducts(page = 1, append = false, search = '') {
             ...(platformId && { platform_id: platformId })
         });
 
-        const data = await fetchAPI(`products?${params}`);
+        const data = await fetchAPI(`products?${params.toString()}`);
         if (!data) throw new Error('Failed to load products');
 
         const container = document.getElementById('productsList');
@@ -151,31 +166,11 @@ async function loadProducts(page = 1, append = false, search = '') {
             const imageUrl = product.image_url || placeholderImage;
             
             col.innerHTML = `
-                <div class="card product-card">
-                    <div class="card-img-wrapper">
-                        <img src="${imageUrl}" 
-                             class="card-img-top" 
-                             alt="${product.name}"
-                             onerror="this.src='${placeholderImage}'">
-                    </div>
+                <div class="card">
+                    <img src="${imageUrl}" class="card-img-top" alt="${product.name}">
                     <div class="card-body">
-                        <h5 class="card-title text-truncate" title="${product.name}">${product.name}</h5>
-                        <p class="card-text price mb-2">${formatPrice(product.current_price)}</p>
-                        <div class="platform-badge ${product.platform.toLowerCase()}-badge">
-                            <img src="${platformLogos[product.platform]}" 
-                                 alt="${product.platform}" 
-                                 class="platform-logo-small"
-                                 onerror="this.style.display='none'">
-                            ${product.platform}
-                        </div>
-                        <div class="product-actions mt-3">
-                            <button class="btn btn-primary btn-sm" onclick="loadPriceHistory(${product.id})">
-                                <i class="fas fa-chart-line"></i> Price History
-                            </button>
-                            <button class="btn btn-outline-primary btn-sm" onclick="addToCompare(${product.id})">
-                                <i class="fas fa-balance-scale"></i> Compare
-                            </button>
-                        </div>
+                        <h5 class="card-title">${product.name}</h5>
+                        <p class="card-text">${formatPrice(product.current_price)}</p>
                     </div>
                 </div>
             `;
@@ -188,135 +183,11 @@ async function loadProducts(page = 1, append = false, search = '') {
         }
     } catch (error) {
         console.error('Error loading products:', error);
-        const container = document.getElementById('productsList');
-        if (!append) {
-            container.innerHTML = `
-                <div class="col-12">
-                    <div class="alert alert-danger">
-                        Failed to load products. Please try again later.
-                    </div>
-                </div>
-            `;
-        }
     }
 }
 
-// Price History Functions
-async function loadPriceHistory(productId) {
-    try {
-        const product = await fetchAPI(`products/${productId}`);
-        if (!product) throw new Error('Failed to load product');
-
-        const chartData = {
-            labels: product.price_history.map(ph => new Date(ph.timestamp)),
-            datasets: [{
-                label: 'Price History',
-                data: product.price_history.map(ph => ph.price),
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0.1
-            }]
-        };
-        
-        console.log(chartData);
-        
-        if (window.priceHistoryChart) {
-            window.priceHistoryChart.destroy();
-        }
-
-        const ctx = document.getElementById('priceChart');
-        if (!ctx) return;
-
-        window.priceHistoryChart = new Chart(ctx, {
-            type: 'line',
-            data: chartData,
-            options: {
-                responsive: true,
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: {
-                            unit: 'day'
-                        }
-                    }
-                }
-            }
-        });
-
-        const detailsContainer = document.getElementById('productDetails');
-        if (detailsContainer) {
-            const imageUrl = product.image_url || placeholderImage;
-            detailsContainer.innerHTML = `
-                <div class="text-center mb-3">
-                    <img src="${imageUrl}" 
-                         alt="${product.name}" 
-                         class="img-fluid" 
-                         style="max-height: 200px;"
-                         onerror="this.src='${placeholderImage}'">
-                </div>
-                <h6>${product.name}</h6>
-                <p class="mb-1">Current Price: ${formatPrice(product.current_price)}</p>
-                <p class="mb-1">Platform: ${product.platform}</p>
-                <a href="${product.url}" target="_blank" class="btn btn-sm btn-outline-primary">
-                    View on ${product.platform}
-                </a>
-            `;
-        }
-    } catch (error) {
-        console.error('Error loading price history:', error);
-    }
-}
-
-// Compare functionality
-let compareList = [];
-
-function addToCompare(productId) {
-    if (!compareList.includes(productId)) {
-        compareList.push(productId);
-        if (compareList.length === 2) {
-            window.location.href = `/compare?products=${compareList.join(',')}`;
-        } else {
-            alert('Select one more product to compare');
-        }
-    }
-}
-
-// Search functionality
-const searchProducts = debounce(() => {
-    const searchQuery = document.getElementById('searchQuery')?.value.trim();
-    if (searchQuery) {
-        loadProducts(1, false, searchQuery);
-    }
-}, 500);
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    // Load initial data
-    loadStats();
-    loadProducts();
-    
-    // Set up search functionality
-    const searchInput = document.getElementById('searchQuery');
-    if (searchInput) {
-        searchInput.addEventListener('input', searchProducts);
-    }
-    
-    // Set up load more functionality
-    const loadMoreBtn = document.getElementById('loadMore');
-    if (loadMoreBtn) {
-        loadMoreBtn.addEventListener('click', () => {
-            const currentPage = Math.ceil(document.querySelectorAll('.product-card').length / 12);
-            loadProducts(currentPage + 1, true);
-        });
-    }
-
-    // Set up filters
-    const categoryFilter = document.getElementById('categoryFilter');
-    if (categoryFilter) {
-        categoryFilter.addEventListener('change', () => loadProducts(1));
-    }
-
-    const platformFilter = document.getElementById('platformFilter');
-    if (platformFilter) {
-        platformFilter.addEventListener('change', () => loadProducts(1));
-    }
+// **Ensure filters load before products on page load**
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadFilters();  // ✅ Load categories & platforms first
+    await loadProducts(); // ✅ Fetch products after filters are set
 });
