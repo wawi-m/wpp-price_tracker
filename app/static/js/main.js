@@ -195,34 +195,69 @@ async function loadPriceHistory(productId) {
             }
         });
 
+        // Update product details section
+        const detailsContainer = document.getElementById('productDetails');
+        if (detailsContainer) {
+            const imageUrl = product.image_url || '/static/media/placeholder.png';
+            detailsContainer.innerHTML = `
+                <div class="text-center mb-3">
+                    <img src="${imageUrl}" 
+                         alt="${product.name}" 
+                         class="img-fluid" 
+                         style="max-height: 200px;"
+                         onerror="this.src='/static/media/placeholder.png'">
+                </div>
+                <h6>${product.name}</h6>
+                <p class="mb-1">Current Price: ${formatPrice(product.current_price)}</p>
+                <p class="mb-1">Platform: ${product.platform}</p>
+                <a href="${product.url}" target="_blank" class="btn btn-sm btn-outline-primary">
+                    View on ${product.platform}
+                </a>
+            `;
+        }
     } catch (error) {
         console.error('Error loading price history:', error);
     }
 }
 
-// Compare functionality
-let compareList = [];
-function addToCompare(productId) {
-    if (!compareList.includes(productId)) {
-        compareList.push(productId);
-        if (compareList.length === 2) {
-            window.location.href = `/compare?products=${compareList.join(',')}`;
-        } else {
-            alert('Select one more product to compare');
-        }
+// Load stats   
+async function loadStats() {
+    const statElements = {
+        totalProducts: document.getElementById('totalProducts'),
+        priceDrops: document.getElementById('priceDrops'),
+        priceIncreases: document.getElementById('priceIncreases'),
+        jumiaProducts: document.getElementById('jumiaProducts'),
+        jumiaPrices: document.getElementById('jumiaPrices'),
+        kilimallProducts: document.getElementById('kilimallProducts'),
+        kilimallPrices: document.getElementById('kilimallPrices')
+    };
+
+    try {
+        const data = await fetchAPI('stats');
+        if (!data) throw new Error('Failed to load stats');
+
+        console.log('Stats Data:', data); // 🔹 Log received stats for debugging
+
+        // Update elements only if they exist
+        Object.keys(statElements).forEach(key => {
+            if (statElements[key]) {
+                if (key.includes('Prices')) {
+                    statElements[key].textContent = `${data[key] || '0'} prices tracked`;
+                } else {
+                    statElements[key].textContent = data[key] || '0';
+                }
+            }
+        });
+
+        console.log('Stats updated successfully');
+    } catch (error) {
+        console.error('Error loading stats:', error);
+
+        // Reset stats to "0" if an error occurs
+        Object.values(statElements).forEach(element => {
+            if (element) {
+                element.textContent = element.id.includes('Prices') ? '0 prices tracked' : '0';
+            }
+        });
     }
 }
-
-// Search functionality
-const searchProducts = debounce(() => {
-    const searchQuery = document.getElementById('searchQuery')?.value.trim();
-    loadProducts(1, false, searchQuery);
-}, 500);
-
-// Initialize
-document.addEventListener('DOMContentLoaded', async () => {
-    await loadFilters();
-    await loadProducts();
-
-    document.getElementById('searchQuery')?.addEventListener('input', searchProducts);
-});
