@@ -261,3 +261,35 @@ async function loadStats() {
         });
     }
 }
+
+// Load products into the select dropdown
+async function loadProductOptions() {
+    const productSelect = document.getElementById('productSelect');
+    if (!productSelect) return; // Exit if the element doesn't exist
+
+    try {
+        const data = await fetchAPI('products?page=1&per_page=50'); // Fetch first 50 products
+        if (!data || !data.items.length) throw new Error('No products found');
+
+        // Populate dropdown options
+        productSelect.innerHTML = '<option value="">Select a product...</option>' +
+            data.items.map(product => 
+                `<option value="${product.id}">${product.name}</option>`
+            ).join('');
+
+        console.log('Product dropdown populated successfully');
+    } catch (error) {
+        console.error('Error loading product options:', error);
+    }
+}
+
+// Event listener for selecting a product
+document.addEventListener('DOMContentLoaded', () => {
+    loadProductOptions();
+
+    document.getElementById('productSelect')?.addEventListener('change', function () {
+        if (this.value) {
+            loadPriceHistory(this.value); // Load price history for selected product
+        }
+    });
+});
