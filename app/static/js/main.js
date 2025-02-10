@@ -87,46 +87,21 @@ async function loadStats() {
         kilimallPrices: document.getElementById('kilimallPrices')
     };
 
-    // Verify all elements exist
-    const missingElements = Object.entries(statElements)
-        .filter(([key, element]) => !element)
-        .map(([key]) => key);
-
-    if (missingElements.length > 0) {
-        console.error('Missing stat elements:', missingElements);
-        return;
-    }
-
     try {
         const data = await fetchAPI('stats');
         if (!data) throw new Error('Failed to load stats');
-        
-        // Log received data for debugging
-        console.log('Received stats data:', data);
-        
+
         // Update stats with fallback to 0
         statElements.totalProducts.textContent = data.total_products || '0';
         statElements.priceDrops.textContent = data.price_drops || '0';
         statElements.priceIncreases.textContent = data.price_increases || '0';
-        
-        // Update platform stats
         statElements.jumiaProducts.textContent = data.jumia_products || '0';
         statElements.jumiaPrices.textContent = `${data.jumia_prices || '0'} prices tracked`;
         statElements.kilimallProducts.textContent = data.kilimall_products || '0';
         statElements.kilimallPrices.textContent = `${data.kilimall_prices || '0'} prices tracked`;
 
-        // Log successful update
-        console.log('Stats updated successfully');
     } catch (error) {
         console.error('Error loading stats:', error);
-        // Set all stats to 0 on error
-        Object.values(statElements).forEach(element => {
-            if (element.id.includes('Prices')) {
-                element.textContent = '0 prices tracked';
-            } else {
-                element.textContent = '0';
-            }
-        });
     }
 }
 
@@ -177,17 +152,67 @@ async function loadProducts(page = 1, append = false, search = '') {
             container.appendChild(col);
         });
 
-        const loadMoreBtn = document.getElementById('loadMore');
-        if (loadMoreBtn) {
-            loadMoreBtn.style.display = data.has_next ? 'block' : 'none';
-        }
     } catch (error) {
         console.error('Error loading products:', error);
     }
 }
 
+// **Price History Functions**
+async function loadPriceHistory(productId) {
+    try {
+        const product = await fetchAPI(`products/${productId}`);
+        if (!product) throw new Error('Failed to load product');
+
+        const chartData = {
+            labels: product.price_history.map(ph => new Date(ph.timestamp)),
+            datasets: [{
+                label: 'Price History',
+                data: product.price_history.map(ph => ph.price),
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }]
+        };
+
+        if (window.priceHistoryChart) {
+            window.priceHistoryChart.destroy();
+        }
+
+        const ctx = document.getElementById('priceChart');
+        if (!ctx) return;
+
+        window.priceHistoryChart = new Chart(ctx, {
+            type: 'line',
+            data: chartData
+        });
+
+    } catch (error) {
+        console.error('Error loading price history:', error);
+    }
+}
+
+// **Compare functionality**
+let compareList = [];
+function addToCompare(productId) {
+    if (!compareList.includes(productId)) {
+        compareList.push(productId);
+        if (compareList.length === 2) {
+            window.location.href = `/compare?products=${compareList.join(',')}`;
+        } else {
+            alert('Select one more product to compare');
+        }
+    }
+}
+
+// **Search functionality**
+const searchProducts = debounce(() => {
+    const searchQuery = document.getElementById('searchQuery')?.value.trim();
+    if (searchQuery) {
+        loadProducts(1, false, searchQuery);
+    }
+}, 500);
+
 // **Ensure filters load before products on page load**
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadFilters();  // ✅ Load categories & platforms first
-    await loadProducts(); // ✅ Fetch products after filters are set
+    await loadFilters();
+    await loadProducts();
 });
